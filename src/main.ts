@@ -1,7 +1,7 @@
 import { SearchBar } from "./components/search-bar";
 import { ResultsList } from "./components/results-list";
 import { setupKeyboard } from "./services/keyboard";
-import { searchItems, type SearchResult } from "./services/search";
+import { searchItems } from "./services/search";
 import "./styles/global.css";
 
 class App {

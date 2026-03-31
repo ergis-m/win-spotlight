@@ -2,8 +2,10 @@ export class SearchBar {
   public element: HTMLElement;
   private input: HTMLInputElement;
   private debounceTimer: number | null = null;
+  private onQuery: (query: string) => void;
 
-  constructor(private onQuery: (query: string) => void) {
+  constructor(onQuery: (query: string) => void) {
+    this.onQuery = onQuery;
     this.element = document.createElement("div");
     this.element.className = "search-bar";
 
