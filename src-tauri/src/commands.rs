@@ -80,6 +80,7 @@ pub fn open_settings(app: AppHandle) {
 pub struct SettingsResponse {
     pub autostart: bool,
     pub shortcut: String,
+    pub theme: String,
 }
 
 #[tauri::command]
@@ -88,7 +89,24 @@ pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
     SettingsResponse {
         autostart: crate::settings::is_autostart_enabled(),
         shortcut: s.shortcut.clone(),
+        theme: serde_json::to_value(&s.theme)
+            .ok()
+            .and_then(|v| v.as_str().map(String::from))
+            .unwrap_or_else(|| "system".to_string()),
     }
+}
+
+#[tauri::command]
+pub fn set_theme(
+    theme: String,
+    manager: State<'_, SettingsManager>,
+) -> Result<(), String> {
+    let t: crate::settings::Theme =
+        serde_json::from_value(serde_json::Value::String(theme))
+            .map_err(|_| "Invalid theme value".to_string())?;
+    manager.inner.lock().unwrap().theme = t;
+    manager.save();
+    Ok(())
 }
 
 #[tauri::command]

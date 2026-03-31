@@ -12,12 +12,24 @@ const APP_NAME: &str = "Win Spotlight";
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Settings {
     pub shortcut: String,
+    #[serde(default)]
+    pub theme: Theme,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum Theme {
+    #[default]
+    System,
+    Light,
+    Dark,
 }
 
 impl Default for Settings {
     fn default() -> Self {
         Self {
             shortcut: "Alt+Space".to_string(),
+            theme: Theme::default(),
         }
     }
 }

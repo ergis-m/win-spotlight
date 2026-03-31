@@ -129,6 +129,7 @@ pub fn run() {
             commands::get_settings,
             commands::set_autostart,
             commands::set_shortcut,
+            commands::set_theme,
             commands::start_recording,
             commands::stop_recording,
             commands::resume_shortcut,
