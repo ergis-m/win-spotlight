@@ -1,4 +1,4 @@
-# WinApp
+# Win Spotlight
 
 A fast, Raycast-style launcher for Windows. Press **Alt+Space** to open a floating search bar, find apps instantly, and switch between running windows.
 
