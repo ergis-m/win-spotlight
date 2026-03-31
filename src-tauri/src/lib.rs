@@ -1,8 +1,10 @@
 mod commands;
 mod icons;
 mod indexer;
+mod recorder;
 mod running;
 mod search;
+mod settings;
 mod usage;
 mod window;
 
@@ -66,8 +68,14 @@ pub fn run() {
             app.manage(index);
             app.manage(usage::UsageTracker::new());
 
-            // Register the global shortcut.
-            let shortcut: Shortcut = "Alt+Space".parse().unwrap();
+            // Load persisted settings and register the saved shortcut.
+            let settings_mgr = settings::SettingsManager::new();
+            let saved = settings_mgr.inner.lock().unwrap().shortcut.clone();
+            app.manage(settings_mgr);
+
+            let shortcut: Shortcut = saved
+                .parse()
+                .unwrap_or_else(|_| "Alt+Space".parse().unwrap());
             app.global_shortcut().register(shortcut)?;
 
             // Apply acrylic blur and hide on launch — user activates via shortcut.
@@ -99,6 +107,16 @@ pub fn run() {
             } else if win.label() == "settings" {
                 if let WindowEvent::CloseRequested { api, .. } = event {
                     api.prevent_close();
+                    // Stop any active recording and ensure the shortcut is registered.
+                    recorder::stop();
+                    let app = win.app_handle();
+                    let mgr = app.state::<settings::SettingsManager>();
+                    let s = mgr.inner.lock().unwrap().shortcut.clone();
+                    let gs = app.global_shortcut();
+                    let _ = gs.unregister_all();
+                    if let Ok(sc) = s.parse::<Shortcut>() {
+                        let _ = gs.register(sc);
+                    }
                     let _ = win.hide();
                 }
             }
@@ -108,6 +126,12 @@ pub fn run() {
             commands::activate_item,
             commands::hide_window,
             commands::open_settings,
+            commands::get_settings,
+            commands::set_autostart,
+            commands::set_shortcut,
+            commands::start_recording,
+            commands::stop_recording,
+            commands::resume_shortcut,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

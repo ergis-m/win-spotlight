@@ -1,10 +1,13 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
+  plugins: [react(), tailwindcss()],
   clearScreen: false,
   server: {
     port: 5173,
