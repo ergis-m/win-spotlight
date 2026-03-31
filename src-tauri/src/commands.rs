@@ -1,42 +1,42 @@
+use crate::indexer::AppIndex;
 use crate::search;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, State};
 
-/// Search the item catalog with a fuzzy query.
+/// Search the app index with a fuzzy query.
 #[tauri::command]
-pub fn search(query: String) -> Vec<search::SearchItem> {
-    let catalog = search::get_catalog();
-    search::fuzzy_search(&query, &catalog, 8)
+pub fn search(query: String, index: State<'_, AppIndex>) -> Vec<search::SearchResult> {
+    search::query(&index, &query, 8)
 }
 
-/// Execute an item's action by its ID.
+/// Launch an app by its ID.
 #[tauri::command]
-pub fn execute_item(id: String, app: AppHandle) -> Result<(), String> {
-    let catalog = search::get_catalog();
-    let item = catalog
+pub fn execute_item(id: String, index: State<'_, AppIndex>, app: AppHandle) -> Result<(), String> {
+    let entries = index.entries.lock().unwrap();
+    let entry = entries
         .iter()
-        .find(|i| i.id == id)
-        .ok_or_else(|| format!("Item not found: {}", id))?;
+        .find(|e| e.id == id)
+        .ok_or_else(|| format!("App not found: {}", id))?;
 
-    match &item.action {
-        search::ItemAction::RunCommand(cmd) => {
-            std::process::Command::new("cmd")
-                .args(["/C", "start", "", cmd])
-                .spawn()
-                .map_err(|e| e.to_string())?;
-        }
-        search::ItemAction::OpenUrl(url) => {
-            std::process::Command::new("cmd")
-                .args(["/C", "start", "", url])
-                .spawn()
-                .map_err(|e| e.to_string())?;
-        }
-        search::ItemAction::Copy(text) => {
-            // TODO: clipboard integration
-            println!("Copy: {}", text);
-        }
+    if !entry.shortcut_path.is_empty() {
+        // Launch via .lnk shortcut — Windows resolves the target.
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "", &entry.shortcut_path])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    } else if !entry.app_user_model_id.is_empty() {
+        // Launch UWP app via shell:AppsFolder.
+        let shell_path = format!("shell:AppsFolder\\{}", entry.app_user_model_id);
+        std::process::Command::new("explorer")
+            .arg(&shell_path)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    } else {
+        return Err("No launch method available".into());
     }
 
-    // Hide the window after executing
+    drop(entries);
+
+    // Hide the window after launching.
     if let Some(win) = app.get_webview_window("main") {
         let _ = win.hide();
     }
@@ -44,7 +44,7 @@ pub fn execute_item(id: String, app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-/// Hide the launcher window (called when user presses Escape).
+/// Hide the launcher window (called on Escape).
 #[tauri::command]
 pub fn hide_window(app: AppHandle) {
     if let Some(win) = app.get_webview_window("main") {

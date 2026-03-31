@@ -5,7 +5,6 @@ export interface SearchResult {
   title: string;
   subtitle: string;
   icon: string;
-  action: { type: string; value: string };
 }
 
 export async function searchItems(query: string): Promise<SearchResult[]> {

@@ -5,7 +5,7 @@
 }
 
 :root {
-  --bg: rgba(24, 24, 28, 0.92);
+  --bg: rgba(24, 24, 28, 0.78);
   --bg-solid: #18181c;
   --surface: rgba(255, 255, 255, 0.06);
   --surface-hover: rgba(255, 255, 255, 0.1);
@@ -27,25 +27,19 @@ html, body {
 
 #app {
   display: flex;
-  justify-content: center;
-  padding-top: 80px;
   height: 100vh;
 }
 
 /* ── Launcher container ── */
 .launcher {
-  width: 640px;
-  max-height: 420px;
+  width: 100%;
+  height: 100%;
   background: var(--bg);
-  backdrop-filter: blur(24px);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow:
-    0 24px 48px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  outline: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* ── Search bar ── */
@@ -111,6 +105,22 @@ html, body {
   background: var(--surface-hover);
 }
 
+.result-icon-wrap {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-icon-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
 .result-icon {
   font-size: 22px;
   width: 36px;
@@ -121,6 +131,13 @@ html, body {
   background: var(--surface);
   border-radius: 8px;
   flex-shrink: 0;
+}
+
+.result-initial {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.12);
 }
 
 .result-text {

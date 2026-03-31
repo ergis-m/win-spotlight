@@ -1,13 +1,11 @@
 import { executeItem, type SearchResult } from "../services/search";
 
-const ICONS: Record<string, string> = {
-  calculator: "🧮",
-  notepad: "📝",
-  terminal: "⬛",
-  folder: "📁",
-  settings: "⚙️",
-  activity: "📊",
-};
+function renderIcon(item: SearchResult): string {
+  if (item.icon) {
+    return `<img class="result-icon-img" src="${item.icon}" alt="" />`;
+  }
+  return `<span class="result-icon result-initial">${item.title.charAt(0).toUpperCase()}</span>`;
+}
 
 export class ResultsList {
   public element: HTMLElement;
@@ -38,7 +36,7 @@ export class ResultsList {
       row.dataset.index = String(index);
 
       row.innerHTML = `
-        <span class="result-icon">${ICONS[item.icon] || "🔹"}</span>
+        <div class="result-icon-wrap">${renderIcon(item)}</div>
         <div class="result-text">
           <span class="result-title">${item.title}</span>
           <span class="result-subtitle">${item.subtitle}</span>
@@ -76,8 +74,6 @@ export class ResultsList {
     rows.forEach((row, i) => {
       row.classList.toggle("selected", i === this.selectedIndex);
     });
-
-    // Scroll selected into view
     const selected = rows[this.selectedIndex] as HTMLElement | undefined;
     selected?.scrollIntoView({ block: "nearest" });
   }

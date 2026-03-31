@@ -4363,11 +4363,13 @@ name = "winapp"
 version = "0.1.0"
 dependencies = [
  "fuzzy-matcher",
+ "raw-window-handle",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-global-shortcut",
+ "windows",
 ]
 
 [[package]]
