@@ -1,20 +1,27 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-config-schema/schema.json",
-  "productName": "WinApp",
+  "productName": "Win Spotlight",
   "version": "0.1.0",
-  "identifier": "com.winapp.launcher",
+  "identifier": "com.win-spotlight.launcher",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build"
   },
+  "bundle": {
+    "active": true,
+    "icon": [
+      "icons/icon.ico",
+      "icons/icon.png"
+    ]
+  },
   "app": {
     "withGlobalTauri": true,
     "windows": [
       {
         "label": "main",
-        "title": "WinApp",
+        "title": "Win Spotlight",
         "width": 640,
         "height": 420,
         "center": true,
@@ -30,7 +37,7 @@
     "trayIcon": {
       "iconPath": "icons/icon.png",
       "iconAsTemplate": false,
-      "tooltip": "WinApp Launcher"
+      "tooltip": "Win Spotlight"
     }
   }
 }

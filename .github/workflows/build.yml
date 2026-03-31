@@ -65,7 +65,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: winapp-windows
+          name: win-spotlight-windows
           path: release-assets/*
           retention-days: 14
 
@@ -74,6 +74,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          name: "WinApp ${{ github.ref_name }}"
+          name: "Win Spotlight ${{ github.ref_name }}"
           body: "See the assets below to download and install."
           files: release-assets/*

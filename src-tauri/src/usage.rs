@@ -46,7 +46,7 @@ impl UsageTracker {
 
 fn storage_path() -> PathBuf {
     let base = std::env::var("APPDATA").unwrap_or_else(|_| ".".into());
-    let dir = PathBuf::from(base).join("com.winapp.launcher");
+    let dir = PathBuf::from(base).join("com.win-spotlight.launcher");
     let _ = std::fs::create_dir_all(&dir);
     dir.join("usage.json")
 }
