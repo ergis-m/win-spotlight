@@ -1,5 +1,6 @@
 import { SearchBar } from "./components/search-bar";
 import { ResultsList } from "./components/results-list";
+import { FooterBar } from "./components/footer-bar";
 import { setupKeyboard } from "./services/keyboard";
 import { searchItems } from "./services/search";
 import "./styles/global.css";
@@ -7,6 +8,7 @@ import "./styles/global.css";
 class App {
   private searchBar: SearchBar;
   private resultsList: ResultsList;
+  private footerBar: FooterBar;
   private container: HTMLElement;
 
   constructor(root: HTMLElement) {
@@ -15,9 +17,11 @@ class App {
 
     this.searchBar = new SearchBar(this.onQueryChange.bind(this));
     this.resultsList = new ResultsList();
+    this.footerBar = new FooterBar();
 
     this.container.appendChild(this.searchBar.element);
     this.container.appendChild(this.resultsList.element);
+    this.container.appendChild(this.footerBar.element);
     root.appendChild(this.container);
 
     setupKeyboard(this.resultsList, this.searchBar);

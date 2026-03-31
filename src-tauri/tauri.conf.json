@@ -32,6 +32,17 @@
         "visible": false,
         "skipTaskbar": true,
         "shadow": false
+      },
+      {
+        "label": "settings",
+        "url": "settings.html",
+        "title": "Settings",
+        "width": 800,
+        "height": 560,
+        "minWidth": 500,
+        "minHeight": 400,
+        "center": true,
+        "visible": false
       }
     ],
     "trayIcon": {

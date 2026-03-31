@@ -60,3 +60,14 @@ pub fn hide_window(app: AppHandle) {
         let _ = win.hide();
     }
 }
+
+#[tauri::command]
+pub fn open_settings(app: AppHandle) {
+    if let Some(main_win) = app.get_webview_window("main") {
+        let _ = main_win.hide();
+    }
+    if let Some(win) = app.get_webview_window("settings") {
+        let _ = win.show();
+        let _ = win.set_focus();
+    }
+}

@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/nicegui-org/nicegui/main/nicegui/resources/tauri/schema/capability.schema.json",
   "identifier": "default",
   "description": "Default capabilities for the launcher",
-  "windows": ["main"],
+  "windows": ["main", "settings"],
   "permissions": [
     "core:default",
     "global-shortcut:default"

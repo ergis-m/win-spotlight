@@ -10,7 +10,24 @@ use raw_window_handle::HasWindowHandle;
 use tauri::window::{Color, Effect, EffectState, EffectsBuilder};
 use tauri::{Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
-use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWM_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND};
+use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_USE_IMMERSIVE_DARK_MODE, DWMWA_WINDOW_CORNER_PREFERENCE, DWM_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND};
+
+/// Apply dark title bar via DWM on Windows 11.
+fn set_dark_title_bar(win: &tauri::WebviewWindow) {
+    if let Ok(handle) = win.window_handle() {
+        if let raw_window_handle::RawWindowHandle::Win32(h) = handle.as_ref() {
+            let dark: i32 = 1;
+            unsafe {
+                let _ = DwmSetWindowAttribute(
+                    windows::Win32::Foundation::HWND(h.hwnd.get() as *mut _),
+                    DWMWA_USE_IMMERSIVE_DARK_MODE,
+                    &dark as *const i32 as *const _,
+                    std::mem::size_of::<i32>() as u32,
+                );
+            }
+        }
+    }
+}
 
 /// Apply rounded corners via DWM on Windows 11.
 fn set_rounded_corners(win: &tauri::WebviewWindow) {
@@ -66,18 +83,39 @@ pub fn run() {
                 let _ = win.hide();
             }
 
+            // Dark title bar for the settings window.
+            if let Some(win) = app.get_webview_window("settings") {
+                set_dark_title_bar(&win);
+                let _ = win.hide();
+            }
+
             Ok(())
         })
         .on_window_event(|win, event| {
-            if let WindowEvent::Focused(false) = event {
-                let _ = win.hide();
+            if win.label() == "main" {
+                if let WindowEvent::Focused(false) = event {
+                    let _ = win.hide();
+                }
+            } else if win.label() == "settings" {
+                if let WindowEvent::CloseRequested { api, .. } = event {
+                    api.prevent_close();
+                    let _ = win.hide();
+                }
             }
         })
         .invoke_handler(tauri::generate_handler![
             commands::search,
             commands::activate_item,
             commands::hide_window,
+            commands::open_settings,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app, event| {
+            // Keep the app alive when the last visible window closes,
+            // since the main launcher window stays hidden until summoned.
+            if let tauri::RunEvent::ExitRequested { api, .. } = event {
+                api.prevent_exit();
+            }
+        });
 }
