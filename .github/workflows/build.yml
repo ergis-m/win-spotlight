@@ -35,23 +35,26 @@ jobs:
           workspaces: src-tauri -> target
 
       - name: Install frontend dependencies
-        run: pnpm install
-
-      - name: Approve esbuild
-        run: pnpm config set approve-builds esbuild
-        shell: bash
+        run: pnpm install --config.onlyBuiltDependencies=[esbuild]
 
       - name: Build Tauri app
         run: pnpm tauri build
+
+      - name: Collect release assets
+        id: assets
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          cp src-tauri/target/release/bundle/msi/*.msi release-assets/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/nsis/*-setup.exe release-assets/ 2>/dev/null || true
+          ls -la release-assets/
 
       - name: Upload artifacts
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: winapp-windows
-          path: |
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*.exe
+          path: release-assets/*
           retention-days: 14
 
       - name: Create GitHub Release
@@ -61,6 +64,4 @@ jobs:
           draft: true
           name: "WinApp ${{ github.ref_name }}"
           body: "See the assets below to download and install."
-          files: |
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*-setup.exe
+          files: release-assets/*
