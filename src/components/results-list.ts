@@ -1,0 +1,84 @@
+import { executeItem, type SearchResult } from "../services/search";
+
+const ICONS: Record<string, string> = {
+  calculator: "🧮",
+  notepad: "📝",
+  terminal: "⬛",
+  folder: "📁",
+  settings: "⚙️",
+  activity: "📊",
+};
+
+export class ResultsList {
+  public element: HTMLElement;
+  private items: SearchResult[] = [];
+  private selectedIndex = 0;
+
+  constructor() {
+    this.element = document.createElement("div");
+    this.element.className = "results-list";
+  }
+
+  public render(items: SearchResult[]) {
+    this.items = items;
+    this.selectedIndex = 0;
+    this.element.innerHTML = "";
+
+    if (items.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "results-empty";
+      empty.textContent = "No results found";
+      this.element.appendChild(empty);
+      return;
+    }
+
+    items.forEach((item, index) => {
+      const row = document.createElement("div");
+      row.className = "result-item" + (index === 0 ? " selected" : "");
+      row.dataset.index = String(index);
+
+      row.innerHTML = `
+        <span class="result-icon">${ICONS[item.icon] || "🔹"}</span>
+        <div class="result-text">
+          <span class="result-title">${item.title}</span>
+          <span class="result-subtitle">${item.subtitle}</span>
+        </div>
+      `;
+
+      row.addEventListener("click", () => {
+        this.selectedIndex = index;
+        this.activateSelected();
+      });
+
+      row.addEventListener("mouseenter", () => {
+        this.selectedIndex = index;
+        this.updateSelection();
+      });
+
+      this.element.appendChild(row);
+    });
+  }
+
+  public moveSelection(delta: number) {
+    if (this.items.length === 0) return;
+    this.selectedIndex =
+      (this.selectedIndex + delta + this.items.length) % this.items.length;
+    this.updateSelection();
+  }
+
+  public activateSelected() {
+    const item = this.items[this.selectedIndex];
+    if (item) executeItem(item.id);
+  }
+
+  private updateSelection() {
+    const rows = this.element.querySelectorAll(".result-item");
+    rows.forEach((row, i) => {
+      row.classList.toggle("selected", i === this.selectedIndex);
+    });
+
+    // Scroll selected into view
+    const selected = rows[this.selectedIndex] as HTMLElement | undefined;
+    selected?.scrollIntoView({ block: "nearest" });
+  }
+}

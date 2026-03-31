@@ -1,0 +1,36 @@
+import { SearchBar } from "./components/search-bar";
+import { ResultsList } from "./components/results-list";
+import { setupKeyboard } from "./services/keyboard";
+import { searchItems, type SearchResult } from "./services/search";
+import "./styles/global.css";
+
+class App {
+  private searchBar: SearchBar;
+  private resultsList: ResultsList;
+  private container: HTMLElement;
+
+  constructor(root: HTMLElement) {
+    this.container = document.createElement("div");
+    this.container.className = "launcher";
+
+    this.searchBar = new SearchBar(this.onQueryChange.bind(this));
+    this.resultsList = new ResultsList();
+
+    this.container.appendChild(this.searchBar.element);
+    this.container.appendChild(this.resultsList.element);
+    root.appendChild(this.container);
+
+    setupKeyboard(this.resultsList, this.searchBar);
+
+    // Show initial items
+    this.onQueryChange("");
+  }
+
+  private async onQueryChange(query: string) {
+    const results = await searchItems(query);
+    this.resultsList.render(results);
+  }
+}
+
+const root = document.getElementById("app");
+if (root) new App(root);
