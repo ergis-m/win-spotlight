@@ -42,12 +42,14 @@ pub fn query(
         }
     }
 
-    // Score indexed apps (boost by usage).
+    // Score indexed apps (boost by usage and prefix match).
+    let query_lower = query.to_lowercase();
     let entries = index.entries.lock().unwrap();
     for entry in entries.iter() {
         if let Some(score) = matcher.fuzzy_match(&entry.name, query) {
             let usage_boost = (tracker.get_count(&entry.id) as i64).min(50) * 2;
-            scored.push((score + usage_boost, app_result(entry)));
+            let prefix_boost = prefix_bonus(&entry.name, &query_lower);
+            scored.push((score + usage_boost + prefix_boost, app_result(entry)));
         }
     }
 
@@ -113,6 +115,22 @@ fn window_result(win: &running::RunningWindow) -> SearchResult {
         icon: icons::extract_window_icon(win.hwnd, &win.exe_path).unwrap_or_default(),
         kind: "window".into(),
     }
+}
+
+/// Boost apps whose name starts with the query or is an exact match.
+/// Short-named apps that prefix-match get an extra bump so "ea" → "EA" beats
+/// random fuzzy hits like "Notepad".
+fn prefix_bonus(name: &str, query_lower: &str) -> i64 {
+    let name_lower = name.to_lowercase();
+    if name_lower == *query_lower {
+        return 200; // exact match
+    }
+    if name_lower.starts_with(query_lower) {
+        // Shorter names get a bigger boost (e.g. "EA" > "EarTrumpet").
+        let len_bonus = 60i64.saturating_sub(name.len() as i64 * 3);
+        return 100 + len_bonus.max(0);
+    }
+    0
 }
 
 fn app_result(e: &crate::indexer::AppEntry) -> SearchResult {

@@ -136,12 +136,6 @@ pub fn extract_uwp_icon_data_uri(app_id: &str) -> Option<String> {
     Some(rgba_to_data_uri(w, h, &rgba))
 }
 
-/// Read a PNG file from disk and return it as a data URI.
-pub fn png_file_to_data_uri(path: &str) -> Option<String> {
-    let data = std::fs::read(path).ok()?;
-    Some(format!("data:image/png;base64,{}", base64_encode(&data)))
-}
-
 /// Extract icon from a running window's HWND. Tries WM_GETICON,
 /// then class icon, then falls back to the exe file icon.
 pub fn extract_window_icon(hwnd: isize, exe_path: &str) -> Option<String> {
