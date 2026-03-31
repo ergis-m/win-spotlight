@@ -22,6 +22,16 @@ class App {
 
     setupKeyboard(this.resultsList, this.searchBar);
 
+    this.resultsList.setOnActivate(() => {
+      this.searchBar.clear();
+      this.onQueryChange("");
+    });
+
+    // Focus input whenever the window becomes visible.
+    window.addEventListener("focus", () => {
+      this.searchBar.focus();
+    });
+
     // Show initial items
     this.onQueryChange("");
   }

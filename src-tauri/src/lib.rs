@@ -1,7 +1,9 @@
 mod commands;
 mod icons;
 mod indexer;
+mod running;
 mod search;
+mod usage;
 mod window;
 
 use raw_window_handle::HasWindowHandle;
@@ -43,8 +45,9 @@ pub fn run() {
             // Build the app index from Start Menu shortcuts.
             let index = indexer::AppIndex::new();
             let count = index.entries.lock().unwrap().len();
-            println!("Indexed {} apps from Start Menu", count);
+            println!("Indexed {} apps", count);
             app.manage(index);
+            app.manage(usage::UsageTracker::new());
 
             // Register the global shortcut.
             let shortcut: Shortcut = "Alt+Space".parse().unwrap();
@@ -72,7 +75,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::search,
-            commands::execute_item,
+            commands::activate_item,
             commands::hide_window,
         ])
         .run(tauri::generate_context!())

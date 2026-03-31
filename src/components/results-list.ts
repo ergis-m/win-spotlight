@@ -1,4 +1,4 @@
-import { executeItem, type SearchResult } from "../services/search";
+import { activateItem, type SearchResult } from "../services/search";
 
 function renderIcon(item: SearchResult): string {
   if (item.icon) {
@@ -11,6 +11,7 @@ export class ResultsList {
   public element: HTMLElement;
   private items: SearchResult[] = [];
   private selectedIndex = 0;
+  private onActivate: (() => void) | null = null;
 
   constructor() {
     this.element = document.createElement("div");
@@ -35,12 +36,18 @@ export class ResultsList {
       row.className = "result-item" + (index === 0 ? " selected" : "");
       row.dataset.index = String(index);
 
+      const badge =
+        item.kind === "window"
+          ? `<span class="result-badge">Running</span>`
+          : "";
+
       row.innerHTML = `
         <div class="result-icon-wrap">${renderIcon(item)}</div>
         <div class="result-text">
           <span class="result-title">${item.title}</span>
           <span class="result-subtitle">${item.subtitle}</span>
         </div>
+        ${badge}
       `;
 
       row.addEventListener("click", () => {
@@ -64,9 +71,16 @@ export class ResultsList {
     this.updateSelection();
   }
 
+  public setOnActivate(cb: () => void) {
+    this.onActivate = cb;
+  }
+
   public activateSelected() {
     const item = this.items[this.selectedIndex];
-    if (item) executeItem(item.id);
+    if (item) {
+      activateItem(item.id);
+      this.onActivate?.();
+    }
   }
 
   private updateSelection() {

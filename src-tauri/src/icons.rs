@@ -97,12 +97,17 @@ extern "system" {
     fn SHCreateItemFromParsingName(name: *const u16, ctx: *mut std::ffi::c_void, riid: *const GUID, ppv: *mut *mut std::ffi::c_void) -> i32;
 }
 
+const WM_GETICON: u32 = 0x007F;
+const SMTO_ABORTIFHUNG: u32 = 0x0002;
+
 #[link(name = "user32")]
 extern "system" {
     fn DestroyIcon(h_icon: HICON) -> i32;
     fn GetIconInfo(h_icon: HICON, info: *mut ICONINFO) -> i32;
     fn GetDC(hwnd: isize) -> HDC;
     fn ReleaseDC(hwnd: isize, hdc: HDC) -> i32;
+    fn SendMessageTimeoutW(hwnd: isize, msg: u32, wp: usize, lp: isize, flags: u32, timeout: u32, result: *mut isize) -> isize;
+    fn GetClassLongPtrW(hwnd: isize, index: i32) -> usize;
 }
 
 #[link(name = "gdi32")]
@@ -135,6 +140,40 @@ pub fn extract_uwp_icon_data_uri(app_id: &str) -> Option<String> {
 pub fn png_file_to_data_uri(path: &str) -> Option<String> {
     let data = std::fs::read(path).ok()?;
     Some(format!("data:image/png;base64,{}", base64_encode(&data)))
+}
+
+/// Extract icon from a running window's HWND. Tries WM_GETICON,
+/// then class icon, then falls back to the exe file icon.
+pub fn extract_window_icon(hwnd: isize, exe_path: &str) -> Option<String> {
+    unsafe {
+        // Try WM_GETICON (ICON_BIG=1 for 32x32)
+        for icon_type in [1usize, 0] {
+            let mut hicon: isize = 0;
+            let sent = SendMessageTimeoutW(
+                hwnd, WM_GETICON, icon_type, 0,
+                SMTO_ABORTIFHUNG, 100, &mut hicon,
+            );
+            if sent != 0 && hicon != 0 {
+                if let Some((w, h, rgba)) = hicon_to_rgba(hicon) {
+                    return Some(rgba_to_data_uri(w, h, &rgba));
+                }
+            }
+        }
+
+        // Try class icon (GCLP_HICON = -14)
+        let hicon = GetClassLongPtrW(hwnd, -14);
+        if hicon != 0 {
+            if let Some((w, h, rgba)) = hicon_to_rgba(hicon as isize) {
+                return Some(rgba_to_data_uri(w, h, &rgba));
+            }
+        }
+    }
+
+    // Fall back to exe file icon
+    if !exe_path.is_empty() {
+        return extract_icon_data_uri(exe_path);
+    }
+    None
 }
 
 fn rgba_to_data_uri(w: u32, h: u32, rgba: &[u8]) -> String {
