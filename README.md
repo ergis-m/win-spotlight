@@ -1,6 +1,6 @@
 # Win Spotlight
 
-A fast, Raycast-style launcher for Windows. Press **Alt+Space** to open a floating search bar, find apps instantly, and switch between running windows.
+A fast, Raycast-style launcher for Windows. Press **Alt+Space** to open a floating search bar, find apps instantly, search files across your system, and switch between running windows.
 
 ![WinApp screenshot](screenshot.png)
 
@@ -12,6 +12,9 @@ A fast, Raycast-style launcher for Windows. Press **Alt+Space** to open a floati
 - **Usage tracking** — frequently launched apps rise to the top
 - **Real app icons** extracted via the Windows Shell API
 - **Acrylic blur** background with rounded corners on Windows 11
+- **File search** — fuzzy search across indexed directories with smart ranking by recency, file type, and usage frequency
+- **Tabbed results** — switch between All, Apps, Files, and Media views
+- **Configurable indexing** — choose directories, exclude folders, set depth limits, and rebuild on demand
 - **Instant answers** — calculator, unit/currency conversion, color preview, date math, timezone conversion, and percentage helpers directly in the search bar
 - **Regional settings** — auto-detected locale with manual overrides for timezone and currency
 
@@ -31,12 +34,31 @@ Type directly into the search bar — results appear as you type.
 
 Currency rates are live from [open.er-api.com](https://open.er-api.com) (160+ currencies). Unit conversion covers length, weight, temperature, volume, speed, data, time, and area. Color input accepts HEX, RGB, HSL, and OKLCH — all formats are shown for easy copying.
 
+## File Search
+
+Search files across your system directly from the launcher. Switch to the **Files** or **Media** tab, or see top file results in the **All** tab.
+
+- **Fuzzy matching** powered by the Skim algorithm — find files even with partial or misspelled names
+- **Smart ranking** — results are scored by match relevance, recency, file type, path depth, and how often you open them
+- **Cached index** — the file index is persisted to disk for instant startup and rebuilt in the background
+- **Media filter** — quickly find images, videos, and audio files in the dedicated Media tab
+
+Configure file search in **Settings → Indexing**:
+
+| Option | Description |
+|---|---|
+| **Indexed directories** | Choose which folders to scan |
+| **Excluded folders** | Skip folders like `node_modules`, `.git`, `dist` |
+| **Max depth** | Limit how deep the scanner goes (4–20 levels) |
+| **Rebuild index** | Manually trigger a full re-index |
+
 ## Settings
 
 Open settings via the gear icon in the launcher footer.
 
 - **General** — Theme (system/light/dark), launch at login, activation shortcut
 - **Regional** — Override auto-detected timezone and currency (defaults follow your OS locale)
+- **Indexing** — Configure file search directories, exclusions, and depth
 - **About** — Version info
 
 ## Prerequisites
