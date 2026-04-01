@@ -8,15 +8,24 @@ importers:
 
   .:
     dependencies:
-      '@fontsource-variable/geist':
-        specifier: ^5.2.8
-        version: 5.2.8
+      '@hugeicons/core-free-icons':
+        specifier: ^4.1.1
+        version: 4.1.1
+      '@hugeicons/react':
+        specifier: ^1.1.6
+        version: 1.1.6(react@19.2.4)
+      '@tanstack/react-query':
+        specifier: ^5.96.1
+        version: 5.96.1(react@19.2.4)
       '@tauri-apps/api':
         specifier: ^2.10.1
         version: 2.10.1
       '@tauri-apps/plugin-global-shortcut':
         specifier: ^2.3.1
         version: 2.3.1
+      '@tauri-apps/plugin-updater':
+        specifier: ^2.10.0
+        version: 2.10.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -397,14 +406,19 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
-  '@fontsource-variable/geist@5.2.8':
-    resolution: {integrity: sha512-cJ6m9e+8MQ5dCYJsLylfZrgBh6KkG4bOLckB35Tr9J/EqdkEM6QllH5PxqP1dhTvFup+HtMRPuz9xOjxXJggxw==}
-
   '@hono/node-server@1.19.12':
     resolution: {integrity: sha512-txsUW4SQ1iilgE0l9/e9VQWmELXifEFvmdA1j6WFh/aFPj99hIntrSsq/if0UWyGVkmrRPKA1wCeP+UCr1B9Uw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
+
+  '@hugeicons/core-free-icons@4.1.1':
+    resolution: {integrity: sha512-teqIBvPHl90ygIwKyJwTxOH8aNp1X1PjDTcMvLkEwdPxPD+8mssrZ5kXKIAJJFYPsz69a8LYQY0UPid4PAdavg==}
+
+  '@hugeicons/react@1.1.6':
+    resolution: {integrity: sha512-c2LhXJMAW5wN1pC/smBXG0YPqUON6ceR/ZdXHCjEI9KvB+hjtqYjmzIxok5hAQOeXGz0WtORgCQMzqewFKAZwg==}
+    peerDependencies:
+      react: '>=16.0.0'
 
   '@inquirer/ansi@1.0.2':
     resolution: {integrity: sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ==}
@@ -1395,6 +1409,14 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
+  '@tanstack/query-core@5.96.1':
+    resolution: {integrity: sha512-u1yBgtavSy+N8wgtW3PiER6UpxcplMje65yXnnVgiHTqiMwLlxiw4WvQDrXyn+UD6lnn8kHaxmerJUzQcV/MMg==}
+
+  '@tanstack/react-query@5.96.1':
+    resolution: {integrity: sha512-2X7KYK5KKWUKGeWCVcqxXAkYefJtrKB7tSKWgeG++b0H6BRHxQaLSSi8AxcgjmUnnosHuh9WsFZqvE16P1WCzA==}
+    peerDependencies:
+      react: ^18 || ^19
+
   '@tauri-apps/api@2.10.1':
     resolution: {integrity: sha512-hKL/jWf293UDSUN09rR69hrToyIXBb8CjGaWC7gfinvnQrBVvnLr08FeFi38gxtugAVyVcTa5/FD/Xnkb1siBw==}
 
@@ -1471,6 +1493,9 @@ packages:
 
   '@tauri-apps/plugin-global-shortcut@2.3.1':
     resolution: {integrity: sha512-vr40W2N6G63dmBPaha1TsBQLLURXG538RQbH5vAm0G/ovVZyXJrmZR1HF1W+WneNloQvwn4dm8xzwpEXRW560g==}
+
+  '@tauri-apps/plugin-updater@2.10.0':
+    resolution: {integrity: sha512-ljN8jPlnT0aSn8ecYhuBib84alxfMx6Hc8vJSKMJyzGbTPFZAC44T2I1QNFZssgWKrAlofvJqCC6Rr472JWfkQ==}
 
   '@ts-morph/common@0.27.0':
     resolution: {integrity: sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ==}
@@ -3192,11 +3217,15 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@fontsource-variable/geist@5.2.8': {}
-
   '@hono/node-server@1.19.12(hono@4.12.9)':
     dependencies:
       hono: 4.12.9
+
+  '@hugeicons/core-free-icons@4.1.1': {}
+
+  '@hugeicons/react@1.1.6(react@19.2.4)':
+    dependencies:
+      react: 19.2.4
 
   '@inquirer/ansi@1.0.2': {}
 
@@ -4181,6 +4210,13 @@ snapshots:
       tailwindcss: 4.2.2
       vite: 8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(esbuild@0.27.4)(jiti@2.6.1)
 
+  '@tanstack/query-core@5.96.1': {}
+
+  '@tanstack/react-query@5.96.1(react@19.2.4)':
+    dependencies:
+      '@tanstack/query-core': 5.96.1
+      react: 19.2.4
+
   '@tauri-apps/api@2.10.1': {}
 
   '@tauri-apps/cli-darwin-arm64@2.10.1':
@@ -4231,6 +4267,10 @@ snapshots:
       '@tauri-apps/cli-win32-x64-msvc': 2.10.1
 
   '@tauri-apps/plugin-global-shortcut@2.3.1':
+    dependencies:
+      '@tauri-apps/api': 2.10.1
+
+  '@tauri-apps/plugin-updater@2.10.0':
     dependencies:
       '@tauri-apps/api': 2.10.1
 

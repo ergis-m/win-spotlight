@@ -7,6 +7,8 @@ const GW_OWNER: u32 = 4;
 const SW_RESTORE: i32 = 9;
 const PROCESS_QUERY_LIMITED_INFORMATION: u32 = 0x1000;
 
+const DWMWA_CLOAKED: u32 = 14;
+
 extern "system" {
     fn EnumWindows(cb: unsafe extern "system" fn(isize, isize) -> i32, param: isize) -> i32;
     fn GetWindowTextW(hwnd: isize, buf: *mut u16, max: i32) -> i32;
@@ -23,6 +25,16 @@ extern "system" {
     fn OpenProcess(access: u32, inherit: i32, pid: u32) -> isize;
     fn CloseHandle(h: isize) -> i32;
     fn QueryFullProcessImageNameW(proc: isize, flags: u32, name: *mut u16, size: *mut u32) -> i32;
+}
+
+#[link(name = "dwmapi")]
+extern "system" {
+    fn DwmGetWindowAttribute(
+        hwnd: isize,
+        attr: u32,
+        value: *mut u32,
+        size: u32,
+    ) -> i32;
 }
 
 #[derive(Clone, Debug)]
@@ -55,6 +67,13 @@ unsafe extern "system" fn enum_cb(hwnd: isize, param: isize) -> i32 {
     let list = &mut *(param as *mut Vec<(isize, String, u32)>);
 
     if IsWindowVisible(hwnd) == 0 {
+        return 1;
+    }
+
+    // Skip cloaked windows (UWP frame hosts, virtual-desktop windows, etc.)
+    let mut cloaked: u32 = 0;
+    DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, &mut cloaked, 4);
+    if cloaked != 0 {
         return 1;
     }
 

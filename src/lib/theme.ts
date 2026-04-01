@@ -34,7 +34,17 @@ export function getAppliedTheme(): Theme {
   return currentTheme;
 }
 
-export async function loadAndApplyTheme() {
-  const settings = await invoke<{ theme: string }>("get_settings");
-  applyTheme(settings.theme as Theme);
+export type LauncherSize = "compact" | "normal" | "fancy";
+
+export function applyLauncherSize(size: LauncherSize) {
+  document.documentElement.setAttribute("data-size", size);
 }
+
+export async function loadAndApplySettings() {
+  const settings = await invoke<{ theme: string; launcher_size: string }>("get_settings");
+  applyTheme(settings.theme as Theme);
+  applyLauncherSize(settings.launcher_size as LauncherSize);
+}
+
+/** @deprecated Use loadAndApplySettings instead */
+export const loadAndApplyTheme = loadAndApplySettings;

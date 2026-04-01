@@ -5,6 +5,7 @@
   "windows": ["main", "settings"],
   "permissions": [
     "core:default",
-    "global-shortcut:default"
+    "global-shortcut:default",
+    "updater:default"
   ]
 }

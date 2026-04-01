@@ -5,11 +5,16 @@ export interface SearchResult {
   title: string;
   subtitle: string;
   icon: string;
-  kind: "app" | "window";
+  kind: "app" | "window" | "file";
 }
 
-export async function searchItems(query: string): Promise<SearchResult[]> {
-  return invoke<SearchResult[]>("search", { query });
+export type SearchMode = "all" | "apps" | "files" | "media";
+
+export async function searchItems(
+  query: string,
+  mode: SearchMode = "all",
+): Promise<SearchResult[]> {
+  return invoke<SearchResult[]>("search", { query, mode });
 }
 
 export async function activateItem(id: string): Promise<void> {

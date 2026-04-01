@@ -2,9 +2,12 @@ use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use serde::Serialize;
 
+use crate::file_indexer::FileIndex;
+use crate::file_search;
 use crate::icons;
 use crate::indexer::AppIndex;
 use crate::running;
+use crate::settings::SettingsManager;
 use crate::usage::UsageTracker;
 
 #[derive(Clone, Serialize)]
@@ -13,44 +16,66 @@ pub struct SearchResult {
     pub title: String,
     pub subtitle: String,
     pub icon: String,
-    /// `"app"` or `"window"` — tells the frontend what kind of result this is.
+    /// `"app"`, `"window"`, or `"file"` — tells the frontend what kind of result this is.
     pub kind: String,
 }
 
 pub fn query(
     index: &AppIndex,
+    file_index: &FileIndex,
     tracker: &UsageTracker,
+    settings_mgr: &SettingsManager,
     query: &str,
+    mode: &str,
     limit: usize,
 ) -> Vec<SearchResult> {
     let windows = running::get_windows();
+    let file_search_enabled = settings_mgr.inner.lock().unwrap().file_search.enabled;
+    let include_apps = mode == "all" || mode == "apps";
+    let include_files = file_search_enabled && (mode == "all" || mode == "files");
+    let include_media = file_search_enabled && mode == "media";
+
+    if query.is_empty() && include_apps {
+        return default_results(index, tracker, &windows, limit);
+    }
 
     if query.is_empty() {
-        return default_results(index, tracker, &windows, limit);
+        return Vec::new();
     }
 
     let matcher = SkimMatcherV2::default();
     let mut scored: Vec<(i64, SearchResult)> = Vec::new();
 
-    // Score running windows (boost +30 for being active).
-    for win in &windows {
-        if let Some(score) = matcher.fuzzy_match(&win.title, query) {
-            scored.push((
-                score + 30,
-                window_result(win),
-            ));
+    if include_apps {
+        // Score running windows (boost +30 for being active).
+        for win in &windows {
+            if let Some(score) = matcher.fuzzy_match(&win.title, query) {
+                scored.push((
+                    score + 30,
+                    window_result(win),
+                ));
+            }
+        }
+
+        // Score indexed apps (boost by usage and prefix match).
+        let query_lower = query.to_lowercase();
+        let entries = index.entries.lock().unwrap();
+        for entry in entries.iter() {
+            if let Some(score) = matcher.fuzzy_match(&entry.name, query) {
+                let usage_boost = (tracker.get_count(&entry.id) as i64).min(50) * 2;
+                let prefix_boost = prefix_bonus(&entry.name, &query_lower);
+                scored.push((score + usage_boost + prefix_boost, app_result(entry)));
+            }
         }
     }
 
-    // Score indexed apps (boost by usage and prefix match).
-    let query_lower = query.to_lowercase();
-    let entries = index.entries.lock().unwrap();
-    for entry in entries.iter() {
-        if let Some(score) = matcher.fuzzy_match(&entry.name, query) {
-            let usage_boost = (tracker.get_count(&entry.id) as i64).min(50) * 2;
-            let prefix_boost = prefix_bonus(&entry.name, &query_lower);
-            scored.push((score + usage_boost + prefix_boost, app_result(entry)));
-        }
+    if include_files || include_media {
+        let file_limit = if mode == "all" { 5 } else { limit };
+        let skip_min = mode != "all";
+        let file_results = file_search::query_files(
+            file_index, tracker, query, file_limit, include_media, skip_min,
+        );
+        scored.extend(file_results);
     }
 
     scored.sort_by(|a, b| b.0.cmp(&a.0));

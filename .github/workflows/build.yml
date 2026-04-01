@@ -40,6 +40,9 @@ jobs:
       - name: Build Tauri app
         run: pnpm tauri build --bundles msi,nsis 2>&1 | tee build.log
         shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Show build output
         if: always()
@@ -58,8 +61,39 @@ jobs:
         run: |
           mkdir -p release-assets
           cp src-tauri/target/release/bundle/msi/*.msi release-assets/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/msi/*.msi.zip release-assets/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/msi/*.msi.zip.sig release-assets/ 2>/dev/null || true
           cp src-tauri/target/release/bundle/nsis/*-setup.exe release-assets/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/nsis/*.nsis.zip release-assets/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/nsis/*.nsis.zip.sig release-assets/ 2>/dev/null || true
           ls -la release-assets/
+
+      - name: Generate latest.json updater manifest
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          NSIS_SIG=$(cat src-tauri/target/release/bundle/nsis/*.nsis.zip.sig 2>/dev/null || echo "")
+          NSIS_ZIP=$(basename src-tauri/target/release/bundle/nsis/*.nsis.zip 2>/dev/null || echo "")
+
+          cat > release-assets/latest.json << EOF
+          {
+            "version": "${VERSION}",
+            "pub_date": "${DATE}",
+            "platforms": {
+              "windows-x86_64": {
+                "signature": "${NSIS_SIG}",
+                "url": "https://github.com/ergis-m/win-spotlight/releases/download/${TAG}/${NSIS_ZIP}"
+              }
+            }
+          }
+          EOF
+
+          echo "=== latest.json ==="
+          cat release-assets/latest.json
 
       - name: Upload artifacts
         if: github.event_name == 'workflow_dispatch'

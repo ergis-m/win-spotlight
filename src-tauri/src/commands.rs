@@ -1,18 +1,23 @@
+use std::sync::Arc;
+
+use crate::file_indexer::{self, FileIndex, FileIndexStatus};
 use crate::indexer::AppIndex;
 use crate::running;
 use crate::search;
 use crate::settings::SettingsManager;
 use crate::usage::UsageTracker;
 use tauri::{AppHandle, Manager, State};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
 #[tauri::command]
 pub fn search(
     query: String,
+    mode: String,
     index: State<'_, AppIndex>,
+    file_index: State<'_, Arc<FileIndex>>,
     tracker: State<'_, UsageTracker>,
+    settings_mgr: State<'_, SettingsManager>,
 ) -> Vec<search::SearchResult> {
-    search::query(&index, &tracker, &query, 8)
+    search::query(&index, &file_index, &tracker, &settings_mgr, &query, &mode, 10)
 }
 
 /// Activate a search result — either switch to a running window or launch an app.
@@ -26,6 +31,12 @@ pub fn activate_item(
     if let Some(hwnd_str) = id.strip_prefix("window:") {
         let hwnd: isize = hwnd_str.parse().map_err(|_| "Invalid window handle")?;
         running::switch_to(hwnd);
+    } else if let Some(file_path) = id.strip_prefix("file:") {
+        tracker.record(&id);
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "", file_path])
+            .spawn()
+            .map_err(|e| e.to_string())?;
     } else {
         tracker.record(&id);
 
@@ -79,8 +90,8 @@ pub fn open_settings(app: AppHandle) {
 #[derive(serde::Serialize)]
 pub struct SettingsResponse {
     pub autostart: bool,
-    pub shortcut: String,
     pub theme: String,
+    pub launcher_size: String,
 }
 
 #[tauri::command]
@@ -88,11 +99,14 @@ pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
     let s = manager.inner.lock().unwrap();
     SettingsResponse {
         autostart: crate::settings::is_autostart_enabled(),
-        shortcut: s.shortcut.clone(),
         theme: serde_json::to_value(&s.theme)
             .ok()
             .and_then(|v| v.as_str().map(String::from))
             .unwrap_or_else(|| "system".to_string()),
+        launcher_size: serde_json::to_value(&s.launcher_size)
+            .ok()
+            .and_then(|v| v.as_str().map(String::from))
+            .unwrap_or_else(|| "normal".to_string()),
     }
 }
 
@@ -115,63 +129,65 @@ pub fn set_autostart(enabled: bool) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn set_shortcut(
-    shortcut: String,
+pub fn set_launcher_size(
+    size: String,
     manager: State<'_, SettingsManager>,
     app: AppHandle,
 ) -> Result<(), String> {
-    let new: Shortcut = shortcut
-        .parse()
-        .map_err(|_| "Invalid shortcut format".to_string())?;
-
-    let old_str = manager.inner.lock().unwrap().shortcut.clone();
-
-    let gs = app.global_shortcut();
-    gs.unregister_all().map_err(|e| e.to_string())?;
-
-    if let Err(e) = gs.register(new) {
-        // Rollback: re-register the previous shortcut.
-        if let Ok(old) = old_str.parse::<Shortcut>() {
-            let _ = gs.register(old);
-        }
-        return Err(format!("Failed to register shortcut: {}", e));
-    }
-
-    manager.inner.lock().unwrap().shortcut = shortcut;
+    let s: crate::settings::LauncherSize =
+        serde_json::from_value(serde_json::Value::String(size))
+            .map_err(|_| "Invalid launcher size value".to_string())?;
+    let (w, h) = s.dimensions();
+    manager.inner.lock().unwrap().launcher_size = s;
     manager.save();
+    if let Some(win) = app.get_webview_window("main") {
+        let _ = win.set_size(tauri::Size::Logical(tauri::LogicalSize::new(w, h)));
+        let _ = win.center();
+    }
     Ok(())
 }
 
-/// Suspend the global shortcut and install a low-level keyboard hook
-/// so the next key combo is captured at the OS level.
-#[tauri::command]
-pub fn start_recording(app: AppHandle) -> Result<(), String> {
-    app.global_shortcut()
-        .unregister_all()
-        .map_err(|e| e.to_string())?;
-    let handle = app.clone();
-    app.run_on_main_thread(move || crate::recorder::start(handle))
-        .map_err(|e| e.to_string())
-}
+// ── File search settings commands ──
 
-/// Remove the keyboard hook (does NOT re-register shortcuts).
 #[tauri::command]
-pub fn stop_recording(app: AppHandle) -> Result<(), String> {
-    app.run_on_main_thread(crate::recorder::stop)
-        .map_err(|e| e.to_string())
-}
-
-/// Re-register the saved shortcut (cancel / cleanup path).
-#[tauri::command]
-pub fn resume_shortcut(
+pub fn get_file_search_settings(
     manager: State<'_, SettingsManager>,
-    app: AppHandle,
-) -> Result<(), String> {
-    let s = manager.inner.lock().unwrap().shortcut.clone();
-    let shortcut: Shortcut = s
-        .parse()
-        .map_err(|_| "Invalid saved shortcut".to_string())?;
-    app.global_shortcut()
-        .register(shortcut)
-        .map_err(|e| e.to_string())
+) -> crate::settings::FileSearchSettings {
+    manager.inner.lock().unwrap().file_search.clone()
 }
+
+#[tauri::command]
+pub fn set_file_search_settings(
+    settings: crate::settings::FileSearchSettings,
+    manager: State<'_, SettingsManager>,
+    file_index: State<'_, Arc<FileIndex>>,
+) {
+    let app_data_dir = crate::settings::app_data_dir();
+    manager.inner.lock().unwrap().file_search = settings.clone();
+    manager.save();
+
+    if settings.enabled {
+        file_indexer::rebuild_index((*file_index).clone(), app_data_dir, settings);
+    } else {
+        *file_index.entries.lock().unwrap() = Vec::new();
+        file_index.ready.store(false, std::sync::atomic::Ordering::SeqCst);
+    }
+}
+
+#[tauri::command]
+pub fn rebuild_file_index(
+    manager: State<'_, SettingsManager>,
+    file_index: State<'_, Arc<FileIndex>>,
+) {
+    let settings = manager.inner.lock().unwrap().file_search.clone();
+    let app_data_dir = crate::settings::app_data_dir();
+    file_indexer::rebuild_index((*file_index).clone(), app_data_dir, settings);
+}
+
+#[tauri::command]
+pub fn get_file_index_status(
+    file_index: State<'_, Arc<FileIndex>>,
+) -> FileIndexStatus {
+    file_index.status()
+}
+

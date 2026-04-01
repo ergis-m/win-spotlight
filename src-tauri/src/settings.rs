@@ -11,9 +11,37 @@ const APP_NAME: &str = "Win Spotlight";
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Settings {
-    pub shortcut: String,
     #[serde(default)]
     pub theme: Theme,
+    #[serde(default)]
+    pub launcher_size: LauncherSize,
+    #[serde(default)]
+    pub file_search: FileSearchSettings,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct FileSearchSettings {
+    pub enabled: bool,
+    pub directories: Vec<String>,
+    pub excluded_dirs: Vec<String>,
+    pub max_depth: usize,
+}
+
+impl Default for FileSearchSettings {
+    fn default() -> Self {
+        let home = std::env::var("USERPROFILE").unwrap_or_else(|_| "C:\\Users".into());
+        Self {
+            enabled: true,
+            directories: vec![home],
+            excluded_dirs: vec![
+                "node_modules".into(), ".git".into(), ".hg".into(), "target".into(),
+                "__pycache__".into(), ".cache".into(), "AppData".into(), "$Recycle.Bin".into(),
+                ".vscode".into(), ".idea".into(), ".vs".into(), ".svn".into(),
+                "vendor".into(), "dist".into(), "build".into(), ".next".into(), ".nuxt".into(),
+            ],
+            max_depth: 8,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Default, PartialEq)]
@@ -25,11 +53,32 @@ pub enum Theme {
     Dark,
 }
 
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum LauncherSize {
+    Compact,
+    #[default]
+    Normal,
+    Fancy,
+}
+
+impl LauncherSize {
+    /// Returns (width, height) for the launcher window.
+    pub fn dimensions(&self) -> (f64, f64) {
+        match self {
+            LauncherSize::Compact => (580.0, 360.0),
+            LauncherSize::Normal => (640.0, 420.0),
+            LauncherSize::Fancy => (720.0, 500.0),
+        }
+    }
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            shortcut: "Alt+Space".to_string(),
             theme: Theme::default(),
+            launcher_size: LauncherSize::default(),
+            file_search: FileSearchSettings::default(),
         }
     }
 }
@@ -82,9 +131,13 @@ pub fn set_autostart(enabled: bool) -> Result<(), String> {
     }
 }
 
-fn storage_path() -> PathBuf {
+pub fn app_data_dir() -> PathBuf {
     let base = std::env::var("APPDATA").unwrap_or_else(|_| ".".into());
     let dir = PathBuf::from(base).join("com.win-spotlight.launcher");
     let _ = std::fs::create_dir_all(&dir);
-    dir.join("settings.json")
+    dir
+}
+
+fn storage_path() -> PathBuf {
+    app_data_dir().join("settings.json")
 }
