@@ -151,12 +151,14 @@ function parse(tokens: Token[]): number | null {
   return result;
 }
 
+import { getUserLocale } from "./locale";
+
 /** Format a number nicely (strip trailing zeros, limit decimals). */
 function formatResult(n: number): string {
   if (!isFinite(n)) return n > 0 ? "∞" : "-∞";
   if (isNaN(n)) return "NaN";
   // Use up to 10 significant digits, strip trailing zeros
-  return parseFloat(n.toPrecision(10)).toLocaleString("en-US", {
+  return parseFloat(n.toPrecision(10)).toLocaleString(getUserLocale().language, {
     maximumFractionDigits: 10,
     useGrouping: true,
   });
