@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Settings, Calculator, Copy, Check } from "lucide-react";
 import { searchItems, activateItem, hideWindow, type SearchResult } from "../services/search";
 import { invoke } from "@tauri-apps/api/core";
+import { tryCalc } from "@/lib/calc";
 
 function ResultIcon({ item }: { item: SearchResult }) {
   if (item.icon) {
@@ -53,6 +54,16 @@ export function App() {
     [doSearch]
   );
 
+  const calcResult = tryCalc(query);
+  const [copied, setCopied] = useState(false);
+
+  const copyResult = useCallback(() => {
+    if (!calcResult) return;
+    navigator.clipboard.writeText(calcResult.replace(/,/g, ""));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }, [calcResult]);
+
   const running = results.filter((r) => r.kind === "window");
   const apps = results.filter((r) => r.kind !== "window");
 
@@ -78,6 +89,33 @@ export function App() {
         }}
       />
       <CommandList className="max-h-none flex-1 scrollbar-thin">
+        {calcResult && (
+          <CommandGroup heading="Calculator">
+            <CommandItem
+              value="__calc__"
+              onSelect={() => copyResult()}
+              className="[&>svg.ml-auto]:hidden"
+            >
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-orange-500/15 text-orange-400">
+                  <Calculator className="size-4" />
+                </span>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-sm font-medium leading-tight">
+                    = {calcResult}
+                  </span>
+                  <span className="truncate text-xs leading-tight text-muted-foreground">
+                    {query.trim()}
+                  </span>
+                </div>
+                <span className="ml-auto flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                  {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                  {copied ? "Copied" : "Copy"}
+                </span>
+              </div>
+            </CommandItem>
+          </CommandGroup>
+        )}
         <CommandEmpty>No results found.</CommandEmpty>
         {running.length > 0 && (
           <CommandGroup heading="Running">

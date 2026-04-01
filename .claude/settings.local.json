@@ -7,7 +7,8 @@
       "WebFetch(domain:docs.rs)",
       "Bash(cargo doc:*)",
       "Bash(cargo check:*)",
-      "Bash(pnpm dlx:*)"
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm tsc:*)"
     ]
   }
 }
