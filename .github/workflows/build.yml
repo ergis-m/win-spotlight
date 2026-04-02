@@ -78,7 +78,7 @@ jobs:
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           NSIS_SIG=$(cat src-tauri/target/release/bundle/nsis/*.nsis.zip.sig 2>/dev/null || echo "")
-          NSIS_ZIP=$(basename src-tauri/target/release/bundle/nsis/*.nsis.zip 2>/dev/null || echo "")
+          NSIS_ZIP=$(basename src-tauri/target/release/bundle/nsis/*.nsis.zip 2>/dev/null | sed 's/ /./g' || echo "")
 
           cat > release-assets/latest.json << EOF
           {
