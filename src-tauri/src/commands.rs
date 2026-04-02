@@ -1,3 +1,4 @@
+use std::os::windows::process::CommandExt;
 use std::sync::Arc;
 
 use crate::file_indexer::{self, FileIndex, FileIndexStatus};
@@ -35,6 +36,7 @@ pub fn activate_item(
         tracker.record(&id);
         std::process::Command::new("cmd")
             .args(["/C", "start", "", file_path])
+            .creation_flags(0x08000000)
             .spawn()
             .map_err(|e| e.to_string())?;
     } else {
@@ -49,12 +51,14 @@ pub fn activate_item(
         if !entry.shortcut_path.is_empty() {
             std::process::Command::new("cmd")
                 .args(["/C", "start", "", &entry.shortcut_path])
+                .creation_flags(0x08000000)
                 .spawn()
                 .map_err(|e| e.to_string())?;
         } else if !entry.app_user_model_id.is_empty() {
             let shell_path = format!("shell:AppsFolder\\{}", entry.app_user_model_id);
             std::process::Command::new("explorer")
                 .arg(&shell_path)
+                .creation_flags(0x08000000)
                 .spawn()
                 .map_err(|e| e.to_string())?;
         }

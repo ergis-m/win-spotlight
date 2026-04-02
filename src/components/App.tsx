@@ -18,6 +18,7 @@ import { loadAndApplySettings } from "@/lib/theme";
 import { InstantAnswerGroup } from "./InstantAnswerGroup";
 import { ResultItem } from "./ResultItem";
 import { SearchFooter } from "./SearchFooter";
+import { Button } from "./ui/button";
 
 const TABS: { key: SearchMode; label: string }[] = [
   { key: "all", label: "All" },
@@ -85,7 +86,7 @@ export function App() {
   return (
     <Command
       ref={commandRef}
-      className="rounded-none! bg-transparent! text-foreground"
+      className="rounded-none! bg-background/20 text-foreground p-1"
       shouldFilter={false}
       loop
       onKeyDown={(e) => {
@@ -106,25 +107,6 @@ export function App() {
         }
       }}
     >
-      <div className="flex items-center gap-0.5 p-1 pb-0">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-              tab === t.key
-                ? "bg-white/15 text-white"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => {
-              setTab(t.key);
-              inputRef.current?.focus();
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
       <CommandInput
         ref={inputRef}
         placeholder={
@@ -136,10 +118,31 @@ export function App() {
                 ? "Search files..."
                 : "Search media..."
         }
+        className="text-xs"
         value={query}
         onValueChange={setQuery}
-      />
-      <CommandList className="max-h-none flex-1 scrollbar-thin">
+      >
+        <div className="flex items-center gap-0.5">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition-colors ${
+                tab === t.key
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => {
+                setTab(t.key);
+                inputRef.current?.focus();
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </CommandInput>
+      <CommandList className="max-h-none flex-1 scrollbar-thin p-0!">
         {showInstantAnswers && <InstantAnswerGroup answers={instantAnswers} />}
         <CommandEmpty>No results found.</CommandEmpty>
         {showGrouped ? (

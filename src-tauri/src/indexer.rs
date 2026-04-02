@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::ffi::OsStr;
+use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::sync::Mutex;
 
@@ -178,6 +179,7 @@ fn collect_uwp_apps(entries: &mut Vec<AppEntry>, seen: &mut HashMap<String, usiz
             "-Command",
             "Get-StartApps | Select-Object Name,AppID | ConvertTo-Json -Compress",
         ])
+        .creation_flags(0x08000000)
         .output()
     {
         Ok(o) if o.status.success() => o.stdout,

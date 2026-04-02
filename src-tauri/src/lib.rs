@@ -149,7 +149,9 @@ pub fn run() {
         .on_window_event(|win, event| {
             if win.label() == "main" {
                 if let WindowEvent::Focused(false) = event {
-                    let _ = win.hide();
+                    if !cfg!(debug_assertions) {
+                        let _ = win.hide();
+                    }
                 }
             } else if win.label() == "settings" {
                 if let WindowEvent::CloseRequested { api, .. } = event {
