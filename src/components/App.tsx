@@ -19,7 +19,6 @@ import { InstantAnswerGroup } from "./InstantAnswerGroup";
 import { HintGroup } from "./HintGroup";
 import { ResultItem } from "./ResultItem";
 import { SearchFooter } from "./SearchFooter";
-import { Button } from "./ui/button";
 
 const TABS: { key: SearchMode; label: string }[] = [
   { key: "all", label: "All" },
