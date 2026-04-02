@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::os::windows::process::CommandExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ use crate::icons;
 
 // ── Data model ──
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AppEntry {
     pub id: String,
     pub name: String,
@@ -28,11 +28,40 @@ pub struct AppIndex {
 }
 
 impl AppIndex {
-    pub fn new() -> Self {
-        let entries = build_index();
+    /// Create an AppIndex, loading from cache if available (fast path).
+    /// The full rebuild happens in the background via `start_background_rebuild`.
+    pub fn new(cache_dir: &Path) -> Self {
+        let entries = load_cache(cache_dir).unwrap_or_default();
         Self {
             entries: Mutex::new(entries),
         }
+    }
+
+    /// Spawn a background thread that rebuilds the full index and updates
+    /// both the in-memory entries and the on-disk cache.
+    pub fn start_background_rebuild(self: &std::sync::Arc<Self>, cache_dir: PathBuf) {
+        let index = std::sync::Arc::clone(self);
+        std::thread::spawn(move || {
+            let fresh = build_index();
+            save_cache(&cache_dir, &fresh);
+            *index.entries.lock().unwrap() = fresh;
+            println!("App index rebuilt in background");
+        });
+    }
+}
+
+fn cache_path(cache_dir: &Path) -> PathBuf {
+    cache_dir.join("app_index.bin")
+}
+
+fn load_cache(cache_dir: &Path) -> Option<Vec<AppEntry>> {
+    let data = std::fs::read(cache_path(cache_dir)).ok()?;
+    bincode::deserialize(&data).ok()
+}
+
+fn save_cache(cache_dir: &Path, entries: &[AppEntry]) {
+    if let Ok(data) = bincode::serialize(entries) {
+        let _ = std::fs::write(cache_path(cache_dir), data);
     }
 }
 

@@ -9,7 +9,9 @@ import {
   FileVideo,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import type { SearchResult } from "@/services/search";
+import { getFileThumbnail } from "@/services/search";
 
 const EXT_ICON_MAP: Record<string, LucideIcon> = {
   // Documents
@@ -75,19 +77,55 @@ const EXT_ICON_MAP: Record<string, LucideIcon> = {
   webm: FileVideo,
 };
 
+const THUMBNAIL_EXTENSIONS = new Set([
+  // Images
+  "jpg", "jpeg", "png", "gif", "bmp", "webp", "ico", "tiff", "tif", "svg",
+  // Videos
+  "mp4", "mkv", "avi", "mov", "webm", "wmv", "flv",
+  // Documents
+  "pdf", "docx", "doc", "pptx", "ppt", "xlsx", "xls",
+]);
+
+function getExtension(filename: string): string {
+  return filename.split(".").pop()?.toLowerCase() ?? "";
+}
+
 function getFileIcon(filename: string): LucideIcon {
-  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-  return EXT_ICON_MAP[ext] ?? File;
+  return EXT_ICON_MAP[getExtension(filename)] ?? File;
+}
+
+function FileIcon({ filename }: { filename: string }) {
+  const Icon = getFileIcon(filename);
+  return (
+    <span className="flex size-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
+      <Icon className="size-4" />
+    </span>
+  );
+}
+
+function FileThumbnailIcon({ item }: { item: SearchResult }) {
+  const filePath = item.id.slice(5); // strip "file:" prefix
+  const ext = getExtension(item.title);
+  const canThumbnail = THUMBNAIL_EXTENSIONS.has(ext);
+
+  const { data: thumbnail } = useQuery({
+    queryKey: ["file-thumbnail", filePath],
+    queryFn: () => getFileThumbnail(filePath),
+    enabled: canThumbnail,
+    staleTime: Infinity,
+    gcTime: 5 * 60 * 1000,
+  });
+
+  if (thumbnail) {
+    return <img className="size-8 object-cover rounded-lg" src={thumbnail} alt="" />;
+  }
+
+  return <FileIcon filename={item.title} />;
 }
 
 export function ResultIcon({ item }: { item: SearchResult }) {
   if (item.kind === "file") {
-    const Icon = getFileIcon(item.title);
-    return (
-      <span className="flex size-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
-        <Icon className="size-4" />
-      </span>
-    );
+    return <FileThumbnailIcon item={item} />;
   }
 
   if (item.icon) {

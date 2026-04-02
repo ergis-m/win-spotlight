@@ -136,6 +136,41 @@ pub fn extract_uwp_icon_data_uri(app_id: &str) -> Option<String> {
     Some(rgba_to_data_uri(w, h, &rgba))
 }
 
+/// Extract a thumbnail for any file via Windows Shell thumbnail providers.
+/// Returns an actual preview for images/videos/docs, or a file-type icon as fallback.
+pub fn extract_file_thumbnail(file_path: &str, size: i32) -> Option<String> {
+    unsafe {
+        CoInitialize(std::ptr::null_mut());
+
+        let wide = to_wide(file_path);
+        let mut factory: *mut std::ffi::c_void = std::ptr::null_mut();
+        let hr = SHCreateItemFromParsingName(
+            wide.as_ptr(),
+            std::ptr::null_mut(),
+            &IID_SHELL_ITEM_IMAGE_FACTORY,
+            &mut factory,
+        );
+        if hr != 0 || factory.is_null() {
+            return None;
+        }
+
+        let vtbl = *(factory as *const *const ImageFactoryVtbl);
+        let sz = SIZE { cx: size, cy: size };
+        let mut hbm: HBITMAP = 0;
+        // flags=0 requests actual thumbnail content (not SIIGBF_ICONONLY)
+        let hr = ((*vtbl).get_image)(factory, sz, 0, &mut hbm);
+        ((*vtbl).release)(factory);
+
+        if hr != 0 || hbm == 0 {
+            return None;
+        }
+
+        let result = hbitmap_to_rgba(hbm);
+        DeleteObject(hbm as HGDIOBJ);
+        result.map(|(w, h, rgba)| rgba_to_data_uri(w, h, &rgba))
+    }
+}
+
 /// Extract icon from a running window's HWND. Tries WM_GETICON,
 /// then class icon, then falls back to the exe file icon.
 pub fn extract_window_icon(hwnd: isize, exe_path: &str) -> Option<String> {

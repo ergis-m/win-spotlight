@@ -66,23 +66,24 @@ pub fn run() {
                 .build(),
         )
         .setup(|app| {
-            // Build the app index from Start Menu shortcuts.
-            let index = indexer::AppIndex::new();
-            let count = index.entries.lock().unwrap().len();
-            println!("Indexed {} apps", count);
-            app.manage(index);
-            app.manage(usage::UsageTracker::new());
-
-            // Load persisted settings.
+            // Load persisted settings early (needed by several init steps).
             let settings_mgr = settings::SettingsManager::new();
             let launcher_dims = settings_mgr.inner.lock().unwrap().launcher_size.dimensions();
             let file_search_settings = settings_mgr.inner.lock().unwrap().file_search.clone();
+            let app_data_dir = settings::app_data_dir();
             app.manage(settings_mgr);
+
+            // Load app index from cache (instant), then rebuild in background.
+            let index = Arc::new(indexer::AppIndex::new(&app_data_dir));
+            let cached = index.entries.lock().unwrap().len();
+            println!("Loaded {} apps from cache", cached);
+            index.start_background_rebuild(app_data_dir.clone());
+            app.manage(index);
+            app.manage(usage::UsageTracker::new());
 
             // Start background file indexing.
             let file_index = Arc::new(file_indexer::FileIndex::new());
             app.manage(file_index.clone());
-            let app_data_dir = settings::app_data_dir();
             file_indexer::start_background_indexing(file_index, app_data_dir, file_search_settings);
 
             // Resize the main window to the saved launcher size.
@@ -173,6 +174,7 @@ pub fn run() {
             commands::set_file_search_settings,
             commands::rebuild_file_index,
             commands::get_file_index_status,
+            commands::get_file_thumbnail,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

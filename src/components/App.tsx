@@ -13,9 +13,10 @@ import {
   hideWindow,
   type SearchMode,
 } from "@/services/search";
-import { getInstantAnswer, getAsyncInstantAnswer } from "@/lib/instant-answer";
+import { getInstantAnswer, getAsyncInstantAnswer, getInstantAnswerHints } from "@/lib/instant-answer";
 import { loadAndApplySettings } from "@/lib/theme";
 import { InstantAnswerGroup } from "./InstantAnswerGroup";
+import { HintGroup } from "./HintGroup";
 import { ResultItem } from "./ResultItem";
 import { SearchFooter } from "./SearchFooter";
 import { Button } from "./ui/button";
@@ -47,6 +48,16 @@ export function App() {
   });
 
   const instantAnswers = syncAnswers ?? asyncAnswers ?? [];
+
+  const hints = useMemo(
+    () => (instantAnswers.length === 0 ? getInstantAnswerHints(query) : []),
+    [query, instantAnswers.length],
+  );
+
+  const fillHint = useCallback((example: string) => {
+    setQuery(example);
+    inputRef.current?.focus();
+  }, []);
 
   const handleWindowFocus = useCallback(() => {
     setQuery("");
@@ -81,6 +92,7 @@ export function App() {
   const apps = results.filter((r) => r.kind !== "window" && r.kind !== "file");
 
   const showInstantAnswers = tab === "all" && instantAnswers.length > 0;
+  const showHints = tab === "all" && hints.length > 0 && !showInstantAnswers;
   const showGrouped = tab === "all" || tab === "apps";
 
   return (
@@ -144,6 +156,7 @@ export function App() {
       </CommandInput>
       <CommandList className="max-h-none flex-1 scrollbar-thin p-0!">
         {showInstantAnswers && <InstantAnswerGroup answers={instantAnswers} />}
+        {showHints && <HintGroup hints={hints} onSelect={fillHint} />}
         <CommandEmpty>No results found.</CommandEmpty>
         {showGrouped ? (
           <>
@@ -175,9 +188,11 @@ export function App() {
             )}
           </>
         ) : (
-          results.map((item) => (
-            <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-          ))
+          <CommandGroup>
+            {results.map((item) => (
+              <ResultItem key={item.id} item={item} onSelect={handleSelect} />
+            ))}
+          </CommandGroup>
         )}
       </CommandList>
       <SearchFooter />

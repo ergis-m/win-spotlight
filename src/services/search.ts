@@ -24,3 +24,9 @@ export async function activateItem(id: string): Promise<void> {
 export async function hideWindow(): Promise<void> {
   return invoke("hide_window");
 }
+
+export async function getFileThumbnail(
+  path: string,
+): Promise<string | null> {
+  return invoke<string | null>("get_file_thumbnail", { path });
+}

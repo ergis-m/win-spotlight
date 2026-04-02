@@ -13,7 +13,7 @@ use tauri::{AppHandle, Manager, State};
 pub fn search(
     query: String,
     mode: String,
-    index: State<'_, AppIndex>,
+    index: State<'_, Arc<AppIndex>>,
     file_index: State<'_, Arc<FileIndex>>,
     tracker: State<'_, UsageTracker>,
     settings_mgr: State<'_, SettingsManager>,
@@ -25,7 +25,7 @@ pub fn search(
 #[tauri::command]
 pub fn activate_item(
     id: String,
-    index: State<'_, AppIndex>,
+    index: State<'_, Arc<AppIndex>>,
     tracker: State<'_, UsageTracker>,
     app: AppHandle,
 ) -> Result<(), String> {
@@ -193,5 +193,10 @@ pub fn get_file_index_status(
     file_index: State<'_, Arc<FileIndex>>,
 ) -> FileIndexStatus {
     file_index.status()
+}
+
+#[tauri::command]
+pub fn get_file_thumbnail(path: String) -> Option<String> {
+    crate::icons::extract_file_thumbnail(&path, 64)
 }
 
