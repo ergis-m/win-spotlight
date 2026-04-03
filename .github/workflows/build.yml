@@ -29,6 +29,11 @@ jobs:
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.7
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -37,14 +42,15 @@ jobs:
           shared-key: tauri-build
 
       - name: Install frontend dependencies
-        run: pnpm install --config.onlyBuiltDependencies=[esbuild]
+        run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
-        run: pnpm tauri build --bundles msi,nsis 2>&1 | tee build.log
+        run: pnpm tauri build --bundles nsis 2>&1 | tee build.log
         shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          RUSTC_WRAPPER: sccache
 
       - name: Show build output
         if: always()
@@ -52,19 +58,16 @@ jobs:
         run: |
           echo "=== Bundle directory ==="
           find src-tauri/target/release/bundle -type f 2>/dev/null || echo "No bundle directory found"
-          echo "=== Release exe ==="
-          ls -la src-tauri/target/release/*.exe 2>/dev/null || echo "No exe found"
           echo "=== Build log tail ==="
           tail -50 build.log 2>/dev/null || true
+          echo "=== sccache stats ==="
+          sccache --show-stats 2>/dev/null || true
 
       - name: Collect release assets
         id: assets
         shell: bash
         run: |
           mkdir -p release-assets
-          cp src-tauri/target/release/bundle/msi/*.msi release-assets/ 2>/dev/null || true
-          cp src-tauri/target/release/bundle/msi/*.msi.zip release-assets/ 2>/dev/null || true
-          cp src-tauri/target/release/bundle/msi/*.msi.zip.sig release-assets/ 2>/dev/null || true
           cp src-tauri/target/release/bundle/nsis/*-setup.exe release-assets/ 2>/dev/null || true
           cp src-tauri/target/release/bundle/nsis/*.nsis.zip release-assets/ 2>/dev/null || true
           cp src-tauri/target/release/bundle/nsis/*.nsis.zip.sig release-assets/ 2>/dev/null || true
