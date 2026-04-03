@@ -12,7 +12,8 @@
       "Bash(find:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm build:*)",
-      "Bash(taskkill //F //IM win-spotlight.exe)"
+      "Bash(taskkill //F //IM win-spotlight.exe)",
+      "Bash(node -e ':*)"
     ]
   }
 }
