@@ -186,8 +186,12 @@ pub fn run() {
         .run(|_app, event| {
             // Keep the app alive when the last visible window closes,
             // since the main launcher window stays hidden until summoned.
-            if let tauri::RunEvent::ExitRequested { api, .. } = event {
-                api.prevent_exit();
+            // Only prevent window-driven exits (code == None); allow explicit
+            // app.exit() calls (e.g. tray "Quit") to proceed.
+            if let tauri::RunEvent::ExitRequested { code, api, .. } = event {
+                if code.is_none() {
+                    api.prevent_exit();
+                }
             }
         });
 }

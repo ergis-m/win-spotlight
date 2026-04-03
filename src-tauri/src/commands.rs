@@ -106,17 +106,26 @@ pub struct SettingsResponse {
 
 #[tauri::command]
 pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
-    let s = manager.inner.lock().unwrap();
+    // Read settings and release the mutex BEFORE calling is_autostart_enabled(),
+    // which spawns a blocking subprocess (schtasks). Holding the lock during that
+    // call blocks every other command that needs SettingsManager (e.g. search).
+    let (theme, launcher_size) = {
+        let s = manager.inner.lock().unwrap();
+        (
+            serde_json::to_value(&s.theme)
+                .ok()
+                .and_then(|v| v.as_str().map(String::from))
+                .unwrap_or_else(|| "system".to_string()),
+            serde_json::to_value(&s.launcher_size)
+                .ok()
+                .and_then(|v| v.as_str().map(String::from))
+                .unwrap_or_else(|| "normal".to_string()),
+        )
+    };
     SettingsResponse {
         autostart: crate::settings::is_autostart_enabled(),
-        theme: serde_json::to_value(&s.theme)
-            .ok()
-            .and_then(|v| v.as_str().map(String::from))
-            .unwrap_or_else(|| "system".to_string()),
-        launcher_size: serde_json::to_value(&s.launcher_size)
-            .ok()
-            .and_then(|v| v.as_str().map(String::from))
-            .unwrap_or_else(|| "normal".to_string()),
+        theme,
+        launcher_size,
     }
 }
 
