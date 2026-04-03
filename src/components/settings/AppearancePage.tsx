@@ -6,7 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getSettings, setLauncherSize } from "@/services/settings";
+import { applyTheme, type Theme } from "@/lib/theme";
+import { getSettings, setTheme, setLauncherSize } from "@/services/settings";
 import { SettingsRow } from "./SettingsRow";
 import { SettingsSection } from "./SettingsSection";
 
@@ -16,6 +17,20 @@ export function AppearancePage() {
   const { data: settings } = useQuery({
     queryKey: ["settings"],
     queryFn: getSettings,
+  });
+
+  const themeMutation = useMutation({
+    mutationFn: (theme: string) => setTheme(theme),
+    onMutate: (theme) => {
+      applyTheme(theme as Theme);
+      queryClient.setQueryData(["settings"], (prev: typeof settings) =>
+        prev ? { ...prev, theme } : prev
+      );
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      if (settings) applyTheme(settings.theme as Theme);
+    },
   });
 
   const sizeMutation = useMutation({
@@ -34,6 +49,23 @@ export function AppearancePage() {
 
   return (
     <div className="flex flex-col gap-2">
+      <SettingsSection>
+        <SettingsRow
+          title="Theme"
+          description="Select your preferred appearance"
+        >
+          <Select value={settings.theme} onValueChange={(v) => themeMutation.mutate(v)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="system">System</SelectItem>
+              <SelectItem value="light">Light</SelectItem>
+              <SelectItem value="dark">Dark</SelectItem>
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+      </SettingsSection>
       <SettingsSection>
         <SettingsRow
           title="Launcher size"

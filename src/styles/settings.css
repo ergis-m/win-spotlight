@@ -2,6 +2,7 @@
 
 html, body {
   height: 100%;
+  overflow: hidden;
 }
 
 #settings-app {
@@ -14,19 +15,3 @@ html, body {
   }
 }
 
-*::-webkit-scrollbar {
-  width: 6px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: oklch(1 0 0 / 10%);
-  border-radius: 9999px;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: oklch(1 0 0 / 18%);
-}

@@ -30,7 +30,7 @@ export function ResultItem({ item, onSelect, showBadge }: ResultItemProps) {
         {showBadge && (
           <Badge
             variant="secondary"
-            className="ml-auto h-auto shrink-0 rounded-sm bg-emerald-500/15 px-1.5 py-0 text-[10px] font-medium text-emerald-400"
+            className="ml-auto h-auto shrink-0 rounded-sm bg-success/15 px-1.5 py-0 text-[10px] font-medium text-success"
           >
             {showBadge}
           </Badge>

@@ -10,7 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, Plus, FolderOpen, RefreshCw } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, PlusSignIcon, FolderOpenIcon, Refresh01Icon } from "@hugeicons/core-free-icons";
 import {
   getFileSearchSettings,
   setFileSearchSettings,
@@ -144,14 +145,14 @@ export function IndexingPage() {
                     key={dir}
                     className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs"
                   >
-                    <FolderOpen className="size-3.5 shrink-0 text-muted-foreground" />
+                    <HugeiconsIcon icon={FolderOpenIcon} strokeWidth={2} className="size-3.5 shrink-0 text-muted-foreground" />
                     <span className="flex-1 truncate">{dir}</span>
                     <button
                       type="button"
                       className="shrink-0 text-muted-foreground hover:text-foreground"
                       onClick={() => removeDirectory(dir)}
                     >
-                      <X className="size-3" />
+                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="size-3" />
                     </button>
                   </div>
                 ))}
@@ -173,7 +174,7 @@ export function IndexingPage() {
                     onClick={addDirectory}
                     disabled={!newDir.trim()}
                   >
-                    <Plus className="size-3" />
+                    <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="size-3" />
                     Add
                   </Button>
                 </div>
@@ -199,7 +200,7 @@ export function IndexingPage() {
                       className="text-muted-foreground hover:text-foreground"
                       onClick={() => removeExclude(name)}
                     >
-                      <X className="size-2.5" />
+                      <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="size-2.5" />
                     </button>
                   </span>
                 ))}
@@ -222,7 +223,7 @@ export function IndexingPage() {
                   onClick={addExclude}
                   disabled={!newExclude.trim()}
                 >
-                  <Plus className="size-3" />
+                  <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="size-3" />
                   Add
                 </Button>
               </div>
@@ -273,7 +274,9 @@ export function IndexingPage() {
                 onClick={() => rebuildMutation.mutate()}
                 disabled={rebuildMutation.isPending}
               >
-                <RefreshCw
+                <HugeiconsIcon
+                  icon={Refresh01Icon}
+                  strokeWidth={2}
                   className={`size-3 ${rebuildMutation.isPending ? "animate-spin" : ""}`}
                 />
                 Rebuild

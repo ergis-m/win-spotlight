@@ -9,8 +9,9 @@ import { tryDateMath } from "./dates";
 import { tryTimezone } from "./timezone";
 import { tryColorParse, type ColorResult } from "./colors";
 import { parseCurrencyQuery, convertCurrency } from "./currency";
+import { isDevToolsQuery, tryDevTools } from "./devtools";
 
-export type InstantAnswerType = "calc" | "unit" | "percentage" | "date" | "timezone" | "color" | "currency";
+export type InstantAnswerType = "calc" | "unit" | "percentage" | "date" | "timezone" | "color" | "currency" | "devtools";
 
 export type InstantAnswer = {
   type: InstantAnswerType;
@@ -152,6 +153,11 @@ export function getInstantAnswerHints(input: string): InstantAnswerHint[] {
  * Only called if sync check returned null.
  */
 export async function getAsyncInstantAnswer(input: string): Promise<InstantAnswer[] | null> {
+  // Dev tools (ip, hostname, etc.)
+  if (isDevToolsQuery(input)) {
+    return tryDevTools(input);
+  }
+
   const parsed = parseCurrencyQuery(input);
   if (!parsed) return null;
 

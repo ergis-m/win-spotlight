@@ -1,14 +1,15 @@
+import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { getVersion } from "@tauri-apps/api/app";
+import { getSettings, setAutostart } from "@/services/settings";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { applyTheme, type Theme } from "@/lib/theme";
-import { getSettings, setTheme, setAutostart } from "@/services/settings";
+  type UpdateStatus,
+  checkForUpdate,
+  downloadAndInstall,
+} from "@/services/updater";
 import { SettingsRow } from "./SettingsRow";
 import { SettingsSection } from "./SettingsSection";
 
@@ -20,19 +21,41 @@ export function GeneralPage() {
     queryFn: getSettings,
   });
 
-  const themeMutation = useMutation({
-    mutationFn: (theme: string) => setTheme(theme),
-    onMutate: (theme) => {
-      applyTheme(theme as Theme);
-      queryClient.setQueryData(["settings"], (prev: typeof settings) =>
-        prev ? { ...prev, theme } : prev
-      );
-    },
-    onError: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
-      if (settings) applyTheme(settings.theme as Theme);
-    },
+  const { data: appVersion } = useQuery({
+    queryKey: ["app-version"],
+    queryFn: getVersion,
+    staleTime: Infinity,
   });
+
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ state: "idle" });
+
+  const handleCheckForUpdate = useCallback(async () => {
+    setUpdateStatus({ state: "checking" });
+    try {
+      const update = await checkForUpdate();
+      if (update) {
+        setUpdateStatus({ state: "available", update, version: update.version });
+      } else {
+        setUpdateStatus({ state: "upToDate" });
+      }
+    } catch (e) {
+      setUpdateStatus({ state: "error", message: String(e) });
+    }
+  }, []);
+
+  const handleInstall = useCallback(async () => {
+    if (updateStatus.state !== "available") return;
+    const { update } = updateStatus;
+    setUpdateStatus({ state: "downloading", progress: 0 });
+    try {
+      await downloadAndInstall(update, (progress) => {
+        setUpdateStatus({ state: "downloading", progress });
+      });
+      setUpdateStatus({ state: "installing" });
+    } catch (e) {
+      setUpdateStatus({ state: "error", message: String(e) });
+    }
+  }, [updateStatus]);
 
   const autostartMutation = useMutation({
     mutationFn: (enabled: boolean) => setAutostart(enabled),
@@ -50,23 +73,46 @@ export function GeneralPage() {
 
   return (
     <div className="flex flex-col gap-2">
-      <SettingsSection>
-        <SettingsRow
-          title="Theme"
-          description="Select your preferred appearance"
-        >
-          <Select value={settings.theme} onValueChange={(v) => themeMutation.mutate(v)}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="system">System</SelectItem>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-            </SelectContent>
-          </Select>
-        </SettingsRow>
-      </SettingsSection>
+      <Card className="py-0">
+        <CardContent className="p-4">
+          <div className="text-sm font-semibold">Win Spotlight</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            Version {appVersion ?? "..."}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="py-0">
+        <CardContent className="flex items-center justify-between p-4">
+          <div>
+            <div className="text-sm font-semibold">Updates</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              <StatusText status={updateStatus} />
+            </div>
+          </div>
+          <div>
+            {updateStatus.state === "available" ? (
+              <Button size="sm" onClick={handleInstall}>
+                Install v{updateStatus.version}
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleCheckForUpdate}
+                disabled={
+                  updateStatus.state === "checking" ||
+                  updateStatus.state === "downloading" ||
+                  updateStatus.state === "installing"
+                }
+              >
+                {updateStatus.state === "checking" ? "Checking..." : "Check for updates"}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <SettingsSection>
         <SettingsRow
           title="Launch at login"
@@ -90,4 +136,23 @@ export function GeneralPage() {
       </SettingsSection>
     </div>
   );
+}
+
+function StatusText({ status }: { status: UpdateStatus }) {
+  switch (status.state) {
+    case "idle":
+      return "Click to check for updates";
+    case "checking":
+      return "Checking for updates...";
+    case "available":
+      return `Version ${status.version} is available`;
+    case "downloading":
+      return `Downloading... ${status.progress}%`;
+    case "installing":
+      return "Installing update, restarting...";
+    case "upToDate":
+      return "You're on the latest version";
+    case "error":
+      return `Update failed: ${status.message}`;
+  }
 }

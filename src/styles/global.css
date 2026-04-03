@@ -9,22 +9,28 @@ html, body {
   height: 100vh;
 }
 
-/* Thin custom scrollbar for results list */
-.scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
+/* ── Result animations ── */
+@keyframes item-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
+[cmdk-group] [cmdk-item] {
+  animation: item-in 120ms ease-out both;
 }
 
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background: oklch(1 0 0 / 12%);
-  border-radius: 9999px;
-}
+/* Stagger the first several items; the rest appear instantly */
+[cmdk-group] [cmdk-item]:nth-child(1) { animation-delay: 0ms; }
+[cmdk-group] [cmdk-item]:nth-child(2) { animation-delay: 25ms; }
+[cmdk-group] [cmdk-item]:nth-child(3) { animation-delay: 50ms; }
+[cmdk-group] [cmdk-item]:nth-child(4) { animation-delay: 70ms; }
+[cmdk-group] [cmdk-item]:nth-child(5) { animation-delay: 85ms; }
+[cmdk-group] [cmdk-item]:nth-child(n+6) { animation-delay: 95ms; }
 
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: oklch(1 0 0 / 20%);
+[cmdk-group-heading] {
+  animation: item-in 100ms ease-out both;
 }
 
 /* ── Launcher size: Compact ── */

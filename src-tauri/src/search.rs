@@ -16,7 +16,7 @@ pub struct SearchResult {
     pub title: String,
     pub subtitle: String,
     pub icon: String,
-    /// `"app"`, `"window"`, or `"file"` — tells the frontend what kind of result this is.
+    /// `"app"`, `"window"`, `"file"`, or `"url"` — tells the frontend what kind of result this is.
     pub kind: String,
 }
 
@@ -43,22 +43,45 @@ pub fn query(
         return Vec::new();
     }
 
+    // If the query looks like a URL, offer to open it directly.
+    if let Some(url_result) = url_result(query) {
+        return vec![url_result];
+    }
+
     let matcher = SkimMatcherV2::default();
     let mut scored: Vec<(i64, SearchResult)> = Vec::new();
 
+    let query_lower = query.to_lowercase();
+
     if include_apps {
-        // Score running windows (boost +30 for being active).
+        // Score running windows: match against both title and exe name,
+        // apply prefix bonus on exe name, and add a small tiebreaker (+10).
         for win in &windows {
-            if let Some(score) = matcher.fuzzy_match(&win.title, query) {
-                scored.push((
-                    score + 30,
-                    window_result(win),
-                ));
+            let exe_name = std::path::Path::new(&win.exe_path)
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("");
+            let title_score = matcher.fuzzy_match(&win.title, query);
+            let exe_score = matcher.fuzzy_match(exe_name, query);
+            let best = match (title_score, exe_score) {
+                (Some(a), Some(b)) => Some(a.max(b)),
+                (a, None) => a,
+                (None, b) => b,
+            };
+            if let Some(score) = best {
+                let prefix = prefix_bonus(exe_name, &query_lower);
+                // Skip weak fuzzy matches — long window titles produce false
+                // positives from scattered character hits.  Require the raw
+                // score to clear a per-character bar before we include it.
+                let min_score = query.len() as i64 * 15;
+                if score + prefix < min_score {
+                    continue;
+                }
+                scored.push((score + prefix + 10, window_result(win)));
             }
         }
 
         // Score indexed apps (boost by usage and prefix match).
-        let query_lower = query.to_lowercase();
         let entries = index.entries.lock().unwrap();
         for entry in entries.iter() {
             if let Some(score) = matcher.fuzzy_match(&entry.name, query) {
@@ -156,6 +179,36 @@ fn prefix_bonus(name: &str, query_lower: &str) -> i64 {
         return 100 + len_bonus.max(0);
     }
     0
+}
+
+/// Detect URL-like input and return a launchable result.
+fn url_result(query: &str) -> Option<SearchResult> {
+    let trimmed = query.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    let is_url = trimmed.starts_with("http://")
+        || trimmed.starts_with("https://")
+        || (trimmed.contains('.') && !trimmed.contains(' ') && !trimmed.starts_with('.'));
+
+    if !is_url {
+        return None;
+    }
+
+    let url = if trimmed.starts_with("http://") || trimmed.starts_with("https://") {
+        trimmed.to_string()
+    } else {
+        format!("https://{}", trimmed)
+    };
+
+    Some(SearchResult {
+        id: format!("url:{}", url),
+        title: trimmed.to_string(),
+        subtitle: format!("Open {}", url),
+        icon: String::new(),
+        kind: "url".into(),
+    })
 }
 
 fn app_result(e: &crate::indexer::AppEntry) -> SearchResult {

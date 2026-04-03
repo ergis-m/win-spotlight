@@ -8,5 +8,17 @@
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "F12" ||
+          (e.shiftKey && e.key === "F10") ||
+          (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+          (e.ctrlKey && e.key === "u")
+        ) {
+          e.preventDefault();
+        }
+      });
+    </script>
   </body>
 </html>

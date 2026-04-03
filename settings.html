@@ -5,8 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings — Win Spotlight</title>
   </head>
-  <body>
+  <body oncontextmenu="event.preventDefault()">
     <div id="settings-app"></div>
     <script type="module" src="/src/settings.tsx"></script>
+    <script>
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "F12" ||
+          (e.shiftKey && e.key === "F10") ||
+          (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+          (e.ctrlKey && e.key === "u")
+        ) {
+          e.preventDefault();
+        }
+      });
+    </script>
   </body>
 </html>

@@ -3,6 +3,7 @@ mod file_indexer;
 mod file_search;
 mod icons;
 mod indexer;
+mod network;
 mod running;
 mod search;
 mod settings;
@@ -111,9 +112,9 @@ pub fn run() {
                 let _ = win.hide();
             }
 
-            // Dark title bar for the settings window.
+            // Rounded corners + shadow for the settings window.
             if let Some(win) = app.get_webview_window("settings") {
-                set_dark_title_bar(&win);
+                set_rounded_corners(&win);
                 let _ = win.hide();
             }
 
@@ -175,6 +176,10 @@ pub fn run() {
             commands::rebuild_file_index,
             commands::get_file_index_status,
             commands::get_file_thumbnail,
+            commands::get_network_info,
+            commands::is_onboarding_completed,
+            commands::complete_onboarding,
+            commands::reset_onboarding,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

@@ -1,80 +1,83 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  File,
-  FileCode,
-  FileImage,
-  FileText,
-  FileSpreadsheet,
-  FileArchive,
-  FileMusic,
-  FileVideo,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+  File01Icon,
+  FileCodeIcon,
+  FileImageIcon,
+  NoteIcon,
+  FileSpreadsheetIcon,
+  FileZipIcon,
+  FileMusicIcon,
+  FileVideoIcon,
+  GlobeIcon,
+  TerminalIcon,
+} from "@hugeicons/core-free-icons";
+import type { IconSvgElement } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
 import type { SearchResult } from "@/services/search";
 import { getFileThumbnail } from "@/services/search";
 
-const EXT_ICON_MAP: Record<string, LucideIcon> = {
+const EXT_ICON_MAP: Record<string, IconSvgElement> = {
   // Documents
-  pdf: FileText,
-  doc: FileText,
-  docx: FileText,
-  txt: FileText,
-  md: FileText,
-  rtf: FileText,
+  pdf: NoteIcon,
+  doc: NoteIcon,
+  docx: NoteIcon,
+  txt: NoteIcon,
+  md: NoteIcon,
+  rtf: NoteIcon,
   // Spreadsheets
-  xls: FileSpreadsheet,
-  xlsx: FileSpreadsheet,
-  csv: FileSpreadsheet,
+  xls: FileSpreadsheetIcon,
+  xlsx: FileSpreadsheetIcon,
+  csv: FileSpreadsheetIcon,
   // Images
-  jpg: FileImage,
-  jpeg: FileImage,
-  png: FileImage,
-  gif: FileImage,
-  svg: FileImage,
-  webp: FileImage,
-  bmp: FileImage,
-  ico: FileImage,
+  jpg: FileImageIcon,
+  jpeg: FileImageIcon,
+  png: FileImageIcon,
+  gif: FileImageIcon,
+  svg: FileImageIcon,
+  webp: FileImageIcon,
+  bmp: FileImageIcon,
+  ico: FileImageIcon,
   // Code
-  rs: FileCode,
-  ts: FileCode,
-  tsx: FileCode,
-  js: FileCode,
-  jsx: FileCode,
-  py: FileCode,
-  go: FileCode,
-  java: FileCode,
-  c: FileCode,
-  cpp: FileCode,
-  h: FileCode,
-  cs: FileCode,
-  rb: FileCode,
-  swift: FileCode,
-  kt: FileCode,
-  html: FileCode,
-  css: FileCode,
-  scss: FileCode,
-  json: FileCode,
-  toml: FileCode,
-  yaml: FileCode,
-  yml: FileCode,
-  xml: FileCode,
+  rs: FileCodeIcon,
+  ts: FileCodeIcon,
+  tsx: FileCodeIcon,
+  js: FileCodeIcon,
+  jsx: FileCodeIcon,
+  py: FileCodeIcon,
+  go: FileCodeIcon,
+  java: FileCodeIcon,
+  c: FileCodeIcon,
+  cpp: FileCodeIcon,
+  h: FileCodeIcon,
+  cs: FileCodeIcon,
+  rb: FileCodeIcon,
+  swift: FileCodeIcon,
+  kt: FileCodeIcon,
+  html: FileCodeIcon,
+  css: FileCodeIcon,
+  scss: FileCodeIcon,
+  json: FileCodeIcon,
+  toml: FileCodeIcon,
+  yaml: FileCodeIcon,
+  yml: FileCodeIcon,
+  xml: FileCodeIcon,
   // Archives
-  zip: FileArchive,
-  rar: FileArchive,
-  "7z": FileArchive,
-  tar: FileArchive,
-  gz: FileArchive,
+  zip: FileZipIcon,
+  rar: FileZipIcon,
+  "7z": FileZipIcon,
+  tar: FileZipIcon,
+  gz: FileZipIcon,
   // Audio
-  mp3: FileMusic,
-  wav: FileMusic,
-  flac: FileMusic,
-  ogg: FileMusic,
+  mp3: FileMusicIcon,
+  wav: FileMusicIcon,
+  flac: FileMusicIcon,
+  ogg: FileMusicIcon,
   // Video
-  mp4: FileVideo,
-  mkv: FileVideo,
-  avi: FileVideo,
-  mov: FileVideo,
-  webm: FileVideo,
+  mp4: FileVideoIcon,
+  mkv: FileVideoIcon,
+  avi: FileVideoIcon,
+  mov: FileVideoIcon,
+  webm: FileVideoIcon,
 };
 
 const THUMBNAIL_EXTENSIONS = new Set([
@@ -90,15 +93,15 @@ function getExtension(filename: string): string {
   return filename.split(".").pop()?.toLowerCase() ?? "";
 }
 
-function getFileIcon(filename: string): LucideIcon {
-  return EXT_ICON_MAP[getExtension(filename)] ?? File;
+function getFileIcon(filename: string): IconSvgElement {
+  return EXT_ICON_MAP[getExtension(filename)] ?? File01Icon;
 }
 
 function FileIcon({ filename }: { filename: string }) {
-  const Icon = getFileIcon(filename);
+  const icon = getFileIcon(filename);
   return (
-    <span className="flex size-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
-      <Icon className="size-4" />
+    <span className="flex size-8 items-center justify-center rounded-lg bg-info/15 text-info">
+      <HugeiconsIcon icon={icon} strokeWidth={2} className="size-4" />
     </span>
   );
 }
@@ -124,6 +127,22 @@ function FileThumbnailIcon({ item }: { item: SearchResult }) {
 }
 
 export function ResultIcon({ item }: { item: SearchResult }) {
+  if (item.kind === "command") {
+    return (
+      <span className="flex size-8 items-center justify-center rounded-lg bg-warning/15 text-warning">
+        <HugeiconsIcon icon={TerminalIcon} strokeWidth={2} className="size-4" />
+      </span>
+    );
+  }
+
+  if (item.kind === "url") {
+    return (
+      <span className="flex size-8 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400">
+        <HugeiconsIcon icon={GlobeIcon} strokeWidth={2} className="size-4" />
+      </span>
+    );
+  }
+
   if (item.kind === "file") {
     return <FileThumbnailIcon item={item} />;
   }

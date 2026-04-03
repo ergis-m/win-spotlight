@@ -1,16 +1,22 @@
 import { useState, useCallback } from "react";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
-import { Calculator, Copy, Check, Ruler, Calendar, Clock, Palette, DollarSign, Percent } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  CalculatorIcon, CopyIcon, Tick02Icon, RulerIcon, Calendar01Icon,
+  Clock01Icon, PaintBoardIcon, Dollar01Icon, PercentIcon, TerminalIcon,
+} from "@hugeicons/core-free-icons";
 import type { InstantAnswer, InstantAnswerType } from "@/lib/instant-answer";
+import { ANSWER_ACCENT } from "@/lib/answer-accents";
 
-const ANSWER_META: Record<InstantAnswerType, { heading: string; icon: React.ReactNode; iconBg: string }> = {
-  calc:       { heading: "Calculator",  icon: <Calculator className="size-4" />,  iconBg: "bg-orange-500/15 text-orange-400" },
-  percentage: { heading: "Percentage",  icon: <Percent className="size-4" />,     iconBg: "bg-orange-500/15 text-orange-400" },
-  unit:       { heading: "Conversion",  icon: <Ruler className="size-4" />,       iconBg: "bg-blue-500/15 text-blue-400" },
-  currency:   { heading: "Currency",    icon: <DollarSign className="size-4" />,  iconBg: "bg-green-500/15 text-green-400" },
-  date:       { heading: "Date",        icon: <Calendar className="size-4" />,    iconBg: "bg-purple-500/15 text-purple-400" },
-  timezone:   { heading: "Time Zone",   icon: <Clock className="size-4" />,       iconBg: "bg-purple-500/15 text-purple-400" },
-  color:      { heading: "Color",       icon: <Palette className="size-4" />,     iconBg: "bg-pink-500/15 text-pink-400" },
+const ANSWER_META: Record<InstantAnswerType, { heading: string; icon: React.ReactNode }> = {
+  calc:       { heading: "Calculator",  icon: <HugeiconsIcon icon={CalculatorIcon} strokeWidth={2} className="size-4" /> },
+  percentage: { heading: "Percentage",  icon: <HugeiconsIcon icon={PercentIcon} strokeWidth={2} className="size-4" /> },
+  unit:       { heading: "Conversion",  icon: <HugeiconsIcon icon={RulerIcon} strokeWidth={2} className="size-4" /> },
+  currency:   { heading: "Currency",    icon: <HugeiconsIcon icon={Dollar01Icon} strokeWidth={2} className="size-4" /> },
+  date:       { heading: "Date",        icon: <HugeiconsIcon icon={Calendar01Icon} strokeWidth={2} className="size-4" /> },
+  timezone:   { heading: "Time Zone",   icon: <HugeiconsIcon icon={Clock01Icon} strokeWidth={2} className="size-4" /> },
+  color:      { heading: "Color",       icon: <HugeiconsIcon icon={PaintBoardIcon} strokeWidth={2} className="size-4" /> },
+  devtools:   { heading: "Network",     icon: <HugeiconsIcon icon={TerminalIcon} strokeWidth={2} className="size-4" /> },
 };
 
 interface InstantAnswerGroupProps {
@@ -49,7 +55,7 @@ export function InstantAnswerGroup({ answers }: InstantAnswerGroupProps) {
                 style={{ backgroundColor: answer.color.cssColor }}
               />
             ) : (
-              <span className={`flex size-8 items-center justify-center rounded-lg ${ANSWER_META[answer.type].iconBg}`}>
+              <span className={`flex size-8 items-center justify-center rounded-lg ${ANSWER_ACCENT[answer.type]}`}>
                 {ANSWER_META[answer.type].icon}
               </span>
             )}
@@ -62,7 +68,7 @@ export function InstantAnswerGroup({ answers }: InstantAnswerGroupProps) {
               </span>
             </div>
             <span className="ml-auto flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
-              {copiedIdx === idx ? <Check className="size-3" /> : <Copy className="size-3" />}
+              {copiedIdx === idx ? <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} className="size-3" /> : <HugeiconsIcon icon={CopyIcon} strokeWidth={2} className="size-3" />}
               {copiedIdx === idx ? "Copied" : "Copy"}
             </span>
           </div>

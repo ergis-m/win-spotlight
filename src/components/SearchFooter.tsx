@@ -1,14 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Kbd } from "@/components/ui/kbd";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Settings01Icon } from "@hugeicons/core-free-icons";
 import { invoke } from "@tauri-apps/api/core";
-
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="inline-flex h-4 min-w-4 items-center justify-center rounded border border-border bg-muted px-1 font-mono text-[10px] text-muted-foreground">
-      {children}
-    </kbd>
-  );
-}
 
 function Hint({ keys, label }: { keys: React.ReactNode; label: string }) {
   return (
@@ -34,7 +28,7 @@ export function SearchFooter() {
           title="Settings"
           onClick={() => invoke("open_settings")}
         >
-          <Settings className="size-3.5" />
+          <HugeiconsIcon icon={Settings01Icon} strokeWidth={2} className="size-3.5" />
         </Button>
       </div>
     </div>

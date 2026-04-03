@@ -54,3 +54,13 @@ export function rebuildFileIndex(): Promise<void> {
 export function getFileIndexStatus(): Promise<FileIndexStatus> {
   return invoke<FileIndexStatus>("get_file_index_status");
 }
+
+// ── Onboarding ──
+
+export function isOnboardingCompleted(): Promise<boolean> {
+  return invoke<boolean>("is_onboarding_completed");
+}
+
+export function completeOnboarding(): Promise<void> {
+  return invoke("complete_onboarding");
+}

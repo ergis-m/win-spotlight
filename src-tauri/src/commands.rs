@@ -29,7 +29,13 @@ pub fn activate_item(
     tracker: State<'_, UsageTracker>,
     app: AppHandle,
 ) -> Result<(), String> {
-    if let Some(hwnd_str) = id.strip_prefix("window:") {
+    if let Some(url) = id.strip_prefix("url:") {
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "", url])
+            .creation_flags(0x08000000)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    } else if let Some(hwnd_str) = id.strip_prefix("window:") {
         let hwnd: isize = hwnd_str.parse().map_err(|_| "Invalid window handle")?;
         running::switch_to(hwnd);
     } else if let Some(file_path) = id.strip_prefix("file:") {
@@ -196,7 +202,29 @@ pub fn get_file_index_status(
 }
 
 #[tauri::command]
+pub fn is_onboarding_completed(manager: State<'_, SettingsManager>) -> bool {
+    manager.inner.lock().unwrap().onboarding_completed
+}
+
+#[tauri::command]
+pub fn complete_onboarding(manager: State<'_, SettingsManager>) {
+    manager.inner.lock().unwrap().onboarding_completed = true;
+    manager.save();
+}
+
+#[tauri::command]
+pub fn reset_onboarding(manager: State<'_, SettingsManager>) {
+    manager.inner.lock().unwrap().onboarding_completed = false;
+    manager.save();
+}
+
+#[tauri::command]
 pub fn get_file_thumbnail(path: String) -> Option<String> {
     crate::icons::extract_file_thumbnail(&path, 64)
+}
+
+#[tauri::command]
+pub fn get_network_info() -> crate::network::NetworkInfo {
+    crate::network::get_network_info()
 }
 

@@ -5,7 +5,7 @@ export interface SearchResult {
   title: string;
   subtitle: string;
   icon: string;
-  kind: "app" | "window" | "file";
+  kind: "app" | "window" | "file" | "url" | "command";
 }
 
 export type SearchMode = "all" | "apps" | "files" | "media";

@@ -1,24 +1,21 @@
 import { CommandGroup, CommandItem } from "@/components/ui/command";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Calculator,
-  Ruler,
-  Calendar,
-  Clock,
-  Palette,
-  DollarSign,
-  Percent,
-  Lightbulb,
-} from "lucide-react";
+  CalculatorIcon, RulerIcon, Calendar01Icon, Clock01Icon,
+  PaintBoardIcon, Dollar01Icon, PercentIcon, BulbIcon, TerminalIcon,
+} from "@hugeicons/core-free-icons";
 import type { InstantAnswerHint, InstantAnswerType } from "@/lib/instant-answer";
+import { ANSWER_ACCENT } from "@/lib/answer-accents";
 
-const HINT_ICON: Record<InstantAnswerType, { icon: React.ReactNode; iconBg: string }> = {
-  calc:       { icon: <Calculator className="size-4" />, iconBg: "bg-orange-500/15 text-orange-400" },
-  percentage: { icon: <Percent className="size-4" />,    iconBg: "bg-orange-500/15 text-orange-400" },
-  unit:       { icon: <Ruler className="size-4" />,      iconBg: "bg-blue-500/15 text-blue-400" },
-  currency:   { icon: <DollarSign className="size-4" />, iconBg: "bg-green-500/15 text-green-400" },
-  date:       { icon: <Calendar className="size-4" />,   iconBg: "bg-purple-500/15 text-purple-400" },
-  timezone:   { icon: <Clock className="size-4" />,      iconBg: "bg-purple-500/15 text-purple-400" },
-  color:      { icon: <Palette className="size-4" />,    iconBg: "bg-pink-500/15 text-pink-400" },
+const HINT_ICON: Record<InstantAnswerType, React.ReactNode> = {
+  calc:       <HugeiconsIcon icon={CalculatorIcon} strokeWidth={2} className="size-4" />,
+  percentage: <HugeiconsIcon icon={PercentIcon} strokeWidth={2} className="size-4" />,
+  unit:       <HugeiconsIcon icon={RulerIcon} strokeWidth={2} className="size-4" />,
+  currency:   <HugeiconsIcon icon={Dollar01Icon} strokeWidth={2} className="size-4" />,
+  date:       <HugeiconsIcon icon={Calendar01Icon} strokeWidth={2} className="size-4" />,
+  timezone:   <HugeiconsIcon icon={Clock01Icon} strokeWidth={2} className="size-4" />,
+  color:      <HugeiconsIcon icon={PaintBoardIcon} strokeWidth={2} className="size-4" />,
+  devtools:   <HugeiconsIcon icon={TerminalIcon} strokeWidth={2} className="size-4" />,
 };
 
 interface HintGroupProps {
@@ -39,8 +36,8 @@ export function HintGroup({ hints, onSelect }: HintGroupProps) {
           className="[&>svg.ml-auto]:hidden"
         >
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <span className={`flex size-8 items-center justify-center rounded-lg ${HINT_ICON[hint.type].iconBg}`}>
-              {HINT_ICON[hint.type].icon}
+            <span className={`flex size-8 items-center justify-center rounded-lg ${ANSWER_ACCENT[hint.type]}`}>
+              {HINT_ICON[hint.type]}
             </span>
             <div className="flex min-w-0 flex-1 flex-col">
               <span className="truncate text-sm font-medium leading-tight text-foreground/80">
@@ -50,7 +47,7 @@ export function HintGroup({ hints, onSelect }: HintGroupProps) {
                 {hint.description}
               </span>
             </div>
-            <Lightbulb className="ml-auto size-3 shrink-0 text-muted-foreground/50" />
+            <HugeiconsIcon icon={BulbIcon} strokeWidth={2} className="ml-auto size-3 shrink-0 text-muted-foreground/50" />
           </div>
         </CommandItem>
       ))}
