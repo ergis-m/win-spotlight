@@ -57,7 +57,33 @@ Write-Host "  src-tauri/Cargo.toml"
 git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock
 git commit -m "release: v$new"
 git tag -a "v$new" -m "v$new"
-git push --follow-tags
+
+# Push commit first to warm the cache, then push the tag
+Write-Host ""
+Write-Host "Pushing commit to main (warms cache)..."
+git push
+
+Write-Host "Waiting for cache-warm job to finish..."
+Start-Sleep -Seconds 10
+
+# Poll until the cache-warm run completes
+$maxAttempts = 30
+for ($i = 0; $i -lt $maxAttempts; $i++) {
+    $run = gh run list --branch main --workflow "Build & Release" --limit 1 --json status,conclusion 2>$null | ConvertFrom-Json
+    if ($run -and $run[0].status -eq "completed") {
+        if ($run[0].conclusion -eq "success") {
+            Write-Host "Cache warm completed successfully."
+        } else {
+            Write-Host "Warning: Cache warm finished with status: $($run[0].conclusion)"
+        }
+        break
+    }
+    Write-Host "  Still running... ($($i + 1)/$maxAttempts)"
+    Start-Sleep -Seconds 15
+}
+
+Write-Host "Pushing tag v$new..."
+git push origin "v$new"
 
 Write-Host ""
 Write-Host "Released v$new"
