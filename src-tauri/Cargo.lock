@@ -4725,7 +4725,7 @@ dependencies = [
 
 [[package]]
 name = "win-spotlight"
-version = "0.2.11"
+version = "0.2.12"
 dependencies = [
  "bincode",
  "fuzzy-matcher",
