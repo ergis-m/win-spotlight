@@ -1,6 +1,7 @@
 //! App settings persistence and Windows autostart via scheduled task.
 
 use serde::{Deserialize, Serialize};
+use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
 use std::process::Command;
 use std::sync::Mutex;
@@ -115,21 +116,23 @@ impl SettingsManager {
 }
 
 pub fn is_autostart_enabled() -> bool {
-    // Check scheduled task first, fall back to registry for migration
-    let task_exists = Command::new("schtasks")
-        .args(["/Query", "/TN", TASK_NAME])
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
+    // Check registry first (instant) before falling back to schtasks (spawns subprocess).
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let registry_exists = hkcu
+        .open_subkey(RUN_KEY)
+        .and_then(|key| key.get_value::<String, _>(APP_NAME))
+        .is_ok();
 
-    if task_exists {
+    if registry_exists {
         return true;
     }
 
-    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    hkcu.open_subkey(RUN_KEY)
-        .and_then(|key| key.get_value::<String, _>(APP_NAME))
-        .is_ok()
+    Command::new("schtasks")
+        .args(["/Query", "/TN", TASK_NAME])
+        .creation_flags(0x08000000)
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
 }
 
 pub fn set_autostart(enabled: bool) -> Result<(), String> {
@@ -188,6 +191,7 @@ pub fn set_autostart(enabled: bool) -> Result<(), String> {
                 &xml_path.to_string_lossy(),
                 "/F",
             ])
+            .creation_flags(0x08000000)
             .output()
             .map_err(|e| e.to_string())?;
 
@@ -209,6 +213,7 @@ pub fn set_autostart(enabled: bool) -> Result<(), String> {
         // Remove scheduled task
         let _ = Command::new("schtasks")
             .args(["/Delete", "/TN", TASK_NAME, "/F"])
+            .creation_flags(0x08000000)
             .output();
 
         // Also clean up registry entry in case it exists
