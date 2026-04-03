@@ -43,12 +43,15 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.7
 
       - name: Rust cache
-        uses: swatinem/rust-cache@v2
+        uses: actions/cache@v4
         with:
-          workspaces: src-tauri -> target
-          shared-key: tauri-build
-          cache-on-failure: true
-          save-if: ${{ github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/') }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: rust-build-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            rust-build-
 
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
@@ -121,6 +124,15 @@ jobs:
           name: win-spotlight-windows
           path: release-assets/*
           retention-days: 14
+
+      - name: Clean old caches
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh cache list --key rust-build- --json id,key,createdAt -q '.[1:] | .[].id' | while read id; do
+            gh cache delete "$id" 2>/dev/null || true
+          done
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
