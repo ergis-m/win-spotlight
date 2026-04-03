@@ -5,21 +5,76 @@
 
 // Country code → default currency
 const COUNTRY_CURRENCY: Record<string, string> = {
-  US: "USD", GB: "GBP", AU: "AUD", CA: "CAD", NZ: "NZD",
-  JP: "JPY", CN: "CNY", KR: "KRW", IN: "INR", BR: "BRL",
-  MX: "MXN", ZA: "ZAR", TH: "THB", MY: "MYR", PH: "PHP",
-  ID: "IDR", SG: "SGD", HK: "HKD", TW: "TWD", TR: "TRY",
-  SE: "SEK", NO: "NOK", DK: "DKK", PL: "PLN", CZ: "CZK",
-  HU: "HUF", RO: "RON", BG: "BGN", IS: "ISK", CH: "CHF",
-  AL: "ALL", RS: "RSD", UA: "UAH", RU: "RUB", IL: "ILS",
-  AE: "AED", SA: "SAR", QA: "QAR", KW: "KWD", EG: "EGP",
-  NG: "NGN", KE: "KES", AR: "ARS", CL: "CLP", CO: "COP",
-  PE: "PEN", VN: "VND", PK: "PKR", BD: "BDT",
+  US: "USD",
+  GB: "GBP",
+  AU: "AUD",
+  CA: "CAD",
+  NZ: "NZD",
+  JP: "JPY",
+  CN: "CNY",
+  KR: "KRW",
+  IN: "INR",
+  BR: "BRL",
+  MX: "MXN",
+  ZA: "ZAR",
+  TH: "THB",
+  MY: "MYR",
+  PH: "PHP",
+  ID: "IDR",
+  SG: "SGD",
+  HK: "HKD",
+  TW: "TWD",
+  TR: "TRY",
+  SE: "SEK",
+  NO: "NOK",
+  DK: "DKK",
+  PL: "PLN",
+  CZ: "CZK",
+  HU: "HUF",
+  RO: "RON",
+  BG: "BGN",
+  IS: "ISK",
+  CH: "CHF",
+  AL: "ALL",
+  RS: "RSD",
+  UA: "UAH",
+  RU: "RUB",
+  IL: "ILS",
+  AE: "AED",
+  SA: "SAR",
+  QA: "QAR",
+  KW: "KWD",
+  EG: "EGP",
+  NG: "NGN",
+  KE: "KES",
+  AR: "ARS",
+  CL: "CLP",
+  CO: "COP",
+  PE: "PEN",
+  VN: "VND",
+  PK: "PKR",
+  BD: "BDT",
   // Eurozone
-  DE: "EUR", FR: "EUR", IT: "EUR", ES: "EUR", PT: "EUR",
-  NL: "EUR", BE: "EUR", AT: "EUR", IE: "EUR", FI: "EUR",
-  GR: "EUR", SK: "EUR", SI: "EUR", LT: "EUR", LV: "EUR",
-  EE: "EUR", MT: "EUR", CY: "EUR", LU: "EUR", HR: "EUR",
+  DE: "EUR",
+  FR: "EUR",
+  IT: "EUR",
+  ES: "EUR",
+  PT: "EUR",
+  NL: "EUR",
+  BE: "EUR",
+  AT: "EUR",
+  IE: "EUR",
+  FI: "EUR",
+  GR: "EUR",
+  SK: "EUR",
+  SI: "EUR",
+  LT: "EUR",
+  LV: "EUR",
+  EE: "EUR",
+  MT: "EUR",
+  CY: "EUR",
+  LU: "EUR",
+  HR: "EUR",
 };
 
 export type UserLocale = {
@@ -71,12 +126,18 @@ export function getOverrides(): UserLocaleOverrides {
 }
 
 /** Detect the system defaults (ignoring overrides). */
-export function getSystemDefaults(): { timezone: string; timezoneShort: string; currency: string; country: string; language: string } {
+export function getSystemDefaults(): {
+  timezone: string;
+  timezoneShort: string;
+  currency: string;
+  country: string;
+  language: string;
+} {
   const language = navigator.language || "en-US";
   const resolved = Intl.DateTimeFormat().resolvedOptions();
   const timezone = resolved.timeZone || "UTC";
-  const timezoneShort = new Date().toLocaleTimeString(language, { timeZoneName: "short" })
-    .split(" ").pop() || timezone;
+  const timezoneShort =
+    new Date().toLocaleTimeString(language, { timeZoneName: "short" }).split(" ").pop() || timezone;
   const parts = language.split("-");
   const country = parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "";
   const currency = COUNTRY_CURRENCY[country] || "USD";
@@ -109,8 +170,12 @@ export function getUserLocale(): UserLocale {
 
 function shortTzName(tz: string, locale: string): string {
   try {
-    return new Date().toLocaleTimeString(locale, { timeZone: tz, timeZoneName: "short" })
-      .split(" ").pop() || tz;
+    return (
+      new Date()
+        .toLocaleTimeString(locale, { timeZone: tz, timeZoneName: "short" })
+        .split(" ")
+        .pop() || tz
+    );
   } catch {
     return tz;
   }
@@ -156,27 +221,70 @@ export const COMMON_TIMEZONES = [
 
 /** Common currencies for the settings dropdown. */
 export const COMMON_CURRENCIES = [
-  "USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "CNY",
-  "NZD", "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "RON",
-  "BGN", "ISK", "TRY", "BRL", "MXN", "HKD", "SGD", "THB",
-  "INR", "IDR", "MYR", "PHP", "KRW", "ZAR", "ALL",
+  "USD",
+  "EUR",
+  "GBP",
+  "JPY",
+  "CAD",
+  "AUD",
+  "CHF",
+  "CNY",
+  "NZD",
+  "SEK",
+  "NOK",
+  "DKK",
+  "PLN",
+  "CZK",
+  "HUF",
+  "RON",
+  "BGN",
+  "ISK",
+  "TRY",
+  "BRL",
+  "MXN",
+  "HKD",
+  "SGD",
+  "THB",
+  "INR",
+  "IDR",
+  "MYR",
+  "PHP",
+  "KRW",
+  "ZAR",
+  "ALL",
 ];
 
 /** Map currency code → display name. */
 export const CURRENCY_NAMES: Record<string, string> = {
-  USD: "USD — US Dollar", EUR: "EUR — Euro", GBP: "GBP — British Pound",
-  JPY: "JPY — Japanese Yen", CHF: "CHF — Swiss Franc", CAD: "CAD — Canadian Dollar",
-  AUD: "AUD — Australian Dollar", NZD: "NZD — New Zealand Dollar",
-  SEK: "SEK — Swedish Krona", NOK: "NOK — Norwegian Krone",
-  DKK: "DKK — Danish Krone", PLN: "PLN — Polish Zloty",
-  CZK: "CZK — Czech Koruna", HUF: "HUF — Hungarian Forint",
-  RON: "RON — Romanian Leu", BGN: "BGN — Bulgarian Lev",
-  ISK: "ISK — Icelandic Króna", TRY: "TRY — Turkish Lira",
-  BRL: "BRL — Brazilian Real", MXN: "MXN — Mexican Peso",
-  CNY: "CNY — Chinese Yuan", HKD: "HKD — Hong Kong Dollar",
-  SGD: "SGD — Singapore Dollar", THB: "THB — Thai Baht",
-  INR: "INR — Indian Rupee", IDR: "IDR — Indonesian Rupiah",
-  MYR: "MYR — Malaysian Ringgit", PHP: "PHP — Philippine Peso",
-  KRW: "KRW — South Korean Won", ZAR: "ZAR — South African Rand",
+  USD: "USD — US Dollar",
+  EUR: "EUR — Euro",
+  GBP: "GBP — British Pound",
+  JPY: "JPY — Japanese Yen",
+  CHF: "CHF — Swiss Franc",
+  CAD: "CAD — Canadian Dollar",
+  AUD: "AUD — Australian Dollar",
+  NZD: "NZD — New Zealand Dollar",
+  SEK: "SEK — Swedish Krona",
+  NOK: "NOK — Norwegian Krone",
+  DKK: "DKK — Danish Krone",
+  PLN: "PLN — Polish Zloty",
+  CZK: "CZK — Czech Koruna",
+  HUF: "HUF — Hungarian Forint",
+  RON: "RON — Romanian Leu",
+  BGN: "BGN — Bulgarian Lev",
+  ISK: "ISK — Icelandic Króna",
+  TRY: "TRY — Turkish Lira",
+  BRL: "BRL — Brazilian Real",
+  MXN: "MXN — Mexican Peso",
+  CNY: "CNY — Chinese Yuan",
+  HKD: "HKD — Hong Kong Dollar",
+  SGD: "SGD — Singapore Dollar",
+  THB: "THB — Thai Baht",
+  INR: "INR — Indian Rupee",
+  IDR: "IDR — Indonesian Rupiah",
+  MYR: "MYR — Malaysian Ringgit",
+  PHP: "PHP — Philippine Peso",
+  KRW: "KRW — South Korean Won",
+  ZAR: "ZAR — South African Rand",
   ALL: "ALL — Albanian Lek",
 };

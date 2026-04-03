@@ -4,13 +4,25 @@ import { isOnboardingCompleted, completeOnboarding } from "@/services/settings";
 import { Kbd } from "@/components/ui/kbd";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
-import { Search01Icon, ZapIcon, FolderOpenIcon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import {
+  Search01Icon,
+  ZapIcon,
+  FolderOpenIcon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
 
-const STEPS: { icon: IconSvgElement; title: string; description: string; keys?: React.ReactNode; examples?: string[] }[] = [
+const STEPS: {
+  icon: IconSvgElement;
+  title: string;
+  description: string;
+  keys?: React.ReactNode;
+  examples?: string[];
+}[] = [
   {
     icon: Search01Icon,
     title: "Quick Launch",
-    description: "Press Alt+Space anywhere to open the launcher. Type to search apps, files, and more.",
+    description:
+      "Press Alt+Space anywhere to open the launcher. Type to search apps, files, and more.",
     keys: (
       <span className="flex items-center gap-1">
         <Kbd>Alt</Kbd>
@@ -87,7 +99,8 @@ function MeshGradient({ step }: { step: number }) {
             top: blob.y,
             background: blob.color,
             transform: "translate(-50%, -50%)",
-            transition: "left 0.8s cubic-bezier(0.22, 1, 0.36, 1), top 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+            transition:
+              "left 0.8s cubic-bezier(0.22, 1, 0.36, 1), top 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         />
       ))}
@@ -95,11 +108,7 @@ function MeshGradient({ step }: { step: number }) {
   );
 }
 
-export function Onboarding({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function Onboarding({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
 
@@ -160,12 +169,14 @@ export function Onboarding({
       {/* Middle: step content */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 text-center">
         <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-primary/25">
-          <HugeiconsIcon icon={current.icon} strokeWidth={2} className="size-6 text-primary-foreground" />
+          <HugeiconsIcon
+            icon={current.icon}
+            strokeWidth={2}
+            className="size-6 text-primary-foreground"
+          />
         </div>
 
-        <h2 className="mb-1.5 text-base font-semibold text-foreground">
-          {current.title}
-        </h2>
+        <h2 className="mb-1.5 text-base font-semibold text-foreground">{current.title}</h2>
         <p className="mb-4 max-w-[340px] text-[13px] leading-relaxed text-muted-foreground">
           {current.description}
         </p>

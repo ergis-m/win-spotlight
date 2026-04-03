@@ -4,32 +4,72 @@
  */
 
 const CURRENCIES: Record<string, string> = {
-  USD: "US Dollar", EUR: "Euro", GBP: "British Pound", JPY: "Japanese Yen",
-  CHF: "Swiss Franc", CAD: "Canadian Dollar", AUD: "Australian Dollar",
-  NZD: "New Zealand Dollar", SEK: "Swedish Krona", NOK: "Norwegian Krone",
-  DKK: "Danish Krone", PLN: "Polish Zloty", CZK: "Czech Koruna",
-  HUF: "Hungarian Forint", RON: "Romanian Leu", BGN: "Bulgarian Lev",
-  ISK: "Icelandic Króna", TRY: "Turkish Lira",
-  BRL: "Brazilian Real", MXN: "Mexican Peso", CNY: "Chinese Yuan",
-  HKD: "Hong Kong Dollar", SGD: "Singapore Dollar", THB: "Thai Baht",
-  INR: "Indian Rupee", IDR: "Indonesian Rupiah", MYR: "Malaysian Ringgit",
-  PHP: "Philippine Peso", KRW: "South Korean Won", ZAR: "South African Rand",
+  USD: "US Dollar",
+  EUR: "Euro",
+  GBP: "British Pound",
+  JPY: "Japanese Yen",
+  CHF: "Swiss Franc",
+  CAD: "Canadian Dollar",
+  AUD: "Australian Dollar",
+  NZD: "New Zealand Dollar",
+  SEK: "Swedish Krona",
+  NOK: "Norwegian Krone",
+  DKK: "Danish Krone",
+  PLN: "Polish Zloty",
+  CZK: "Czech Koruna",
+  HUF: "Hungarian Forint",
+  RON: "Romanian Leu",
+  BGN: "Bulgarian Lev",
+  ISK: "Icelandic Króna",
+  TRY: "Turkish Lira",
+  BRL: "Brazilian Real",
+  MXN: "Mexican Peso",
+  CNY: "Chinese Yuan",
+  HKD: "Hong Kong Dollar",
+  SGD: "Singapore Dollar",
+  THB: "Thai Baht",
+  INR: "Indian Rupee",
+  IDR: "Indonesian Rupiah",
+  MYR: "Malaysian Ringgit",
+  PHP: "Philippine Peso",
+  KRW: "South Korean Won",
+  ZAR: "South African Rand",
   ALL: "Albanian Lek",
 };
 
 // Aliases: symbol or common name → code
 const ALIASES: Record<string, string> = {
-  "$": "USD", "dollar": "USD", "dollars": "USD",
-  "€": "EUR", "euro": "EUR", "euros": "EUR",
-  "£": "GBP", "pound": "GBP", "pounds": "GBP", "quid": "GBP",
-  "¥": "JPY", "yen": "JPY",
-  "yuan": "CNY", "rmb": "CNY", "renminbi": "CNY",
-  "franc": "CHF", "francs": "CHF",
-  "rupee": "INR", "rupees": "INR",
-  "won": "KRW", "real": "BRL", "reais": "BRL",
-  "lira": "TRY", "krona": "SEK", "krone": "NOK",
-  "rand": "ZAR", "baht": "THB", "ringgit": "MYR", "peso": "MXN", "pesos": "MXN",
-  "lek": "ALL",
+  $: "USD",
+  dollar: "USD",
+  dollars: "USD",
+  "€": "EUR",
+  euro: "EUR",
+  euros: "EUR",
+  "£": "GBP",
+  pound: "GBP",
+  pounds: "GBP",
+  quid: "GBP",
+  "¥": "JPY",
+  yen: "JPY",
+  yuan: "CNY",
+  rmb: "CNY",
+  renminbi: "CNY",
+  franc: "CHF",
+  francs: "CHF",
+  rupee: "INR",
+  rupees: "INR",
+  won: "KRW",
+  real: "BRL",
+  reais: "BRL",
+  lira: "TRY",
+  krona: "SEK",
+  krone: "NOK",
+  rand: "ZAR",
+  baht: "THB",
+  ringgit: "MYR",
+  peso: "MXN",
+  pesos: "MXN",
+  lek: "ALL",
 };
 
 export function resolveCode(str: string): string | null {
@@ -131,11 +171,13 @@ export async function convertCurrency(query: CurrencyQuery): Promise<CurrencyRes
     const { amount, from, to } = query;
     if (!(to in rates)) return null;
     const converted = amount * rates[to];
-    return [{
-      result: `${fmt(converted, to)} ${to}`,
-      label: `${amount.toLocaleString(getUserLocale().language)} ${from} → ${to}`,
-      code: to,
-    }];
+    return [
+      {
+        result: `${fmt(converted, to)} ${to}`,
+        label: `${amount.toLocaleString(getUserLocale().language)} ${from} → ${to}`,
+        code: to,
+      },
+    ];
   }
 
   // Multi: show top targets (excluding the source currency)

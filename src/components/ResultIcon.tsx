@@ -82,11 +82,32 @@ const EXT_ICON_MAP: Record<string, IconSvgElement> = {
 
 const THUMBNAIL_EXTENSIONS = new Set([
   // Images
-  "jpg", "jpeg", "png", "gif", "bmp", "webp", "ico", "tiff", "tif", "svg",
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "bmp",
+  "webp",
+  "ico",
+  "tiff",
+  "tif",
+  "svg",
   // Videos
-  "mp4", "mkv", "avi", "mov", "webm", "wmv", "flv",
+  "mp4",
+  "mkv",
+  "avi",
+  "mov",
+  "webm",
+  "wmv",
+  "flv",
   // Documents
-  "pdf", "docx", "doc", "pptx", "ppt", "xlsx", "xls",
+  "pdf",
+  "docx",
+  "doc",
+  "pptx",
+  "ppt",
+  "xlsx",
+  "xls",
 ]);
 
 function getExtension(filename: string): string {

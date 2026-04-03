@@ -5,11 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getVersion } from "@tauri-apps/api/app";
 import { getSettings, setAutostart } from "@/services/settings";
-import {
-  type UpdateStatus,
-  checkForUpdate,
-  downloadAndInstall,
-} from "@/services/updater";
+import { type UpdateStatus, checkForUpdate, downloadAndInstall } from "@/services/updater";
 import { SettingsRow } from "./SettingsRow";
 import { SettingsSection } from "./SettingsSection";
 
@@ -61,7 +57,7 @@ export function GeneralPage() {
     mutationFn: (enabled: boolean) => setAutostart(enabled),
     onMutate: (enabled) => {
       queryClient.setQueryData(["settings"], (prev: typeof settings) =>
-        prev ? { ...prev, autostart: enabled } : prev
+        prev ? { ...prev, autostart: enabled } : prev,
       );
     },
     onError: () => {
@@ -76,9 +72,7 @@ export function GeneralPage() {
       <Card className="py-0">
         <CardContent className="p-4">
           <div className="text-sm font-semibold">Win Spotlight</div>
-          <div className="mt-1 text-xs text-muted-foreground">
-            Version {appVersion ?? "..."}
-          </div>
+          <div className="mt-1 text-xs text-muted-foreground">Version {appVersion ?? "..."}</div>
         </CardContent>
       </Card>
 

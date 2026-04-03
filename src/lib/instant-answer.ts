@@ -11,7 +11,15 @@ import { tryColorParse, type ColorResult } from "./colors";
 import { parseCurrencyQuery, convertCurrency } from "./currency";
 import { isDevToolsQuery, tryDevTools } from "./devtools";
 
-export type InstantAnswerType = "calc" | "unit" | "percentage" | "date" | "timezone" | "color" | "currency" | "devtools";
+export type InstantAnswerType =
+  | "calc"
+  | "unit"
+  | "percentage"
+  | "date"
+  | "timezone"
+  | "color"
+  | "currency"
+  | "devtools";
 
 export type InstantAnswer = {
   type: InstantAnswerType;
@@ -48,12 +56,13 @@ export function getInstantAnswer(input: string): InstantAnswer[] | null {
 
   // Color — one row per format
   const color = tryColorParse(input);
-  if (color) return color.formats.map((f) => ({
-    type: "color" as const,
-    result: f.value,
-    label: f.label,
-    color,
-  }));
+  if (color)
+    return color.formats.map((f) => ({
+      type: "color" as const,
+      result: f.value,
+      label: f.label,
+      color,
+    }));
 
   return null;
 }
@@ -79,8 +88,18 @@ export function getInstantAnswerHints(input: string): InstantAnswerHint[] {
   const hasUnit = /\d\s*[a-z]+$/i.test(q);
   const endsWithPercent = /%/.test(q);
 
-  if (startsWithNumber && endsWithPercent && !q.includes(" of ") && !q.includes("+") && !q.includes("-")) {
-    hints.push({ type: "percentage", example: `${q.replace(/%.*/, "")}% of 200`, description: "Calculate percentage" });
+  if (
+    startsWithNumber &&
+    endsWithPercent &&
+    !q.includes(" of ") &&
+    !q.includes("+") &&
+    !q.includes("-")
+  ) {
+    hints.push({
+      type: "percentage",
+      example: `${q.replace(/%.*/, "")}% of 200`,
+      description: "Calculate percentage",
+    });
   }
 
   if (startsWithNumber && hasUnit && !q.includes(" in ") && !q.includes(" to ")) {
@@ -88,15 +107,38 @@ export function getInstantAnswerHints(input: string): InstantAnswerHint[] {
     const m = q.match(/^([\d.]+)\s*([a-z]+)$/i);
     if (m) {
       const unitHints: Record<string, string> = {
-        kg: "lbs", lbs: "kg", lb: "kg", mi: "km", km: "mi", ft: "m", m: "ft",
-        cm: "in", in: "cm", oz: "g", g: "oz", l: "gal", gal: "l",
-        f: "c", c: "f", mph: "km/h", "km/h": "mph",
-        gb: "mb", tb: "gb", mb: "kb",
-        usd: "eur", eur: "usd", gbp: "usd", jpy: "usd",
+        kg: "lbs",
+        lbs: "kg",
+        lb: "kg",
+        mi: "km",
+        km: "mi",
+        ft: "m",
+        m: "ft",
+        cm: "in",
+        in: "cm",
+        oz: "g",
+        g: "oz",
+        l: "gal",
+        gal: "l",
+        f: "c",
+        c: "f",
+        mph: "km/h",
+        "km/h": "mph",
+        gb: "mb",
+        tb: "gb",
+        mb: "kb",
+        usd: "eur",
+        eur: "usd",
+        gbp: "usd",
+        jpy: "usd",
       };
       const target = unitHints[m[2].toLowerCase()];
       if (target) {
-        hints.push({ type: "unit", example: `${m[1]}${m[2]} in ${target}`, description: "Convert units" });
+        hints.push({
+          type: "unit",
+          example: `${m[1]}${m[2]} in ${target}`,
+          description: "Convert units",
+        });
       }
     }
   }
@@ -106,15 +148,27 @@ export function getInstantAnswerHints(input: string): InstantAnswerHint[] {
     const num = q.replace(/[^0-9.]/g, "");
     if (num) {
       if (!q.includes("+") && !q.includes("-") && !q.includes("*") && !q.includes("/")) {
-        hints.push({ type: "calc", example: `${num} * 2 + 10`, description: "Calculate expression" });
+        hints.push({
+          type: "calc",
+          example: `${num} * 2 + 10`,
+          description: "Calculate expression",
+        });
       }
-      hints.push({ type: "currency", example: `${num} USD to EUR`, description: "Convert currency" });
+      hints.push({
+        type: "currency",
+        example: `${num} USD to EUR`,
+        description: "Convert currency",
+      });
     }
   }
 
   // Hash → color
   if (q.startsWith("#") && q.length < 7 && q.length > 1) {
-    hints.push({ type: "color", example: `${q}${"a4f2c8".slice(q.length - 1)}`, description: "Parse color code" });
+    hints.push({
+      type: "color",
+      example: `${q}${"a4f2c8".slice(q.length - 1)}`,
+      description: "Parse color code",
+    });
   }
   if (q.startsWith("rgb") && !q.includes(")")) {
     hints.push({ type: "color", example: "rgb(255, 87, 51)", description: "Parse color" });
@@ -124,25 +178,45 @@ export function getInstantAnswerHints(input: string): InstantAnswerHint[] {
   }
 
   // Date keywords
-  if (["today", "tomorrow", "yesterday", "now"].some((kw) => kw.startsWith(q) && q.length >= 3 && q !== kw)) {
+  if (
+    ["today", "tomorrow", "yesterday", "now"].some(
+      (kw) => kw.startsWith(q) && q.length >= 3 && q !== kw,
+    )
+  ) {
     const kw = ["today", "tomorrow", "yesterday", "now"].find((k) => k.startsWith(q))!;
     hints.push({ type: "date", example: `${kw} + 30 days`, description: "Date math" });
     if (kw === "now") {
-      hints.push({ type: "timezone", example: "now in Tokyo", description: "Time in another zone" });
+      hints.push({
+        type: "timezone",
+        example: "now in Tokyo",
+        description: "Time in another zone",
+      });
     }
   }
 
   // "days" keyword
   if (q.startsWith("days") && q.length < 10 && !q.includes("until") && !q.includes("between")) {
-    hints.push({ type: "date", example: "days until Dec 25", description: "Count days until a date" });
+    hints.push({
+      type: "date",
+      example: "days until Dec 25",
+      description: "Count days until a date",
+    });
   }
 
   // Partial timezone: "now in" without a city, or time patterns
   if (/^now in\s*$/i.test(q)) {
-    hints.push({ type: "timezone", example: "now in Tokyo", description: "Current time in a city" });
+    hints.push({
+      type: "timezone",
+      example: "now in Tokyo",
+      description: "Current time in a city",
+    });
   }
   if (/^\d{1,2}(:\d{2})?\s*(am|pm)?\s*$/i.test(q)) {
-    hints.push({ type: "timezone", example: `${q.trim()} EST in PST`, description: "Convert time zones" });
+    hints.push({
+      type: "timezone",
+      example: `${q.trim()} EST in PST`,
+      description: "Convert time zones",
+    });
   }
 
   return hints.slice(0, 3);

@@ -68,6 +68,11 @@ jobs:
           cp src-tauri/target/release/bundle/nsis/*-setup.exe release-assets/ 2>/dev/null || true
           cp src-tauri/target/release/bundle/nsis/*.nsis.zip release-assets/ 2>/dev/null || true
           cp src-tauri/target/release/bundle/nsis/*.nsis.zip.sig release-assets/ 2>/dev/null || true
+          # Create a stable-named copy for the "latest download" URL
+          for f in release-assets/*-setup.exe; do
+            cp "$f" release-assets/Win-Spotlight-setup.exe
+            break
+          done
           ls -la release-assets/
 
       - name: Generate latest.json updater manifest

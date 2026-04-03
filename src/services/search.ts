@@ -25,8 +25,6 @@ export async function hideWindow(): Promise<void> {
   return invoke("hide_window");
 }
 
-export async function getFileThumbnail(
-  path: string,
-): Promise<string | null> {
+export async function getFileThumbnail(path: string): Promise<string | null> {
   return invoke<string | null>("get_file_thumbnail", { path });
 }

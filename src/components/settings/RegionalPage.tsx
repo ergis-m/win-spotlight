@@ -18,10 +18,11 @@ import { SettingsRow } from "./SettingsRow";
 import { SettingsSection } from "./SettingsSection";
 
 function formatTzLabel(tz: string): string {
-  const offset = new Date()
-    .toLocaleTimeString("en-US", { timeZone: tz, timeZoneName: "longOffset" })
-    .split(" ")
-    .pop() || "";
+  const offset =
+    new Date()
+      .toLocaleTimeString("en-US", { timeZone: tz, timeZoneName: "longOffset" })
+      .split(" ")
+      .pop() || "";
   const city = tz.split("/").pop()!.replace(/_/g, " ");
   return `${city} (${offset})`;
 }
@@ -46,10 +47,7 @@ export function RegionalPage() {
   return (
     <div className="flex flex-col gap-2">
       <SettingsSection>
-        <SettingsRow
-          title="Timezone"
-          description={`System detected: ${sys.timezone}`}
-        >
+        <SettingsRow title="Timezone" description={`System detected: ${sys.timezone}`}>
           <Select value={timezone} onValueChange={handleTimezoneChange}>
             <SelectTrigger className="w-52">
               <SelectValue />
@@ -66,10 +64,7 @@ export function RegionalPage() {
         </SettingsRow>
       </SettingsSection>
       <SettingsSection>
-        <SettingsRow
-          title="Currency"
-          description={`System detected: ${sys.currency}`}
-        >
+        <SettingsRow title="Currency" description={`System detected: ${sys.currency}`}>
           <Select value={currency} onValueChange={handleCurrencyChange}>
             <SelectTrigger className="w-52">
               <SelectValue />

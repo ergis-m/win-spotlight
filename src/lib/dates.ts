@@ -53,12 +53,24 @@ function addDuration(date: Date, dur: { value: number; unit: DurationUnit }, sig
   const d = new Date(date);
   const v = dur.value * sign;
   switch (dur.unit) {
-    case "day": d.setDate(d.getDate() + v); break;
-    case "week": d.setDate(d.getDate() + v * 7); break;
-    case "month": d.setMonth(d.getMonth() + v); break;
-    case "year": d.setFullYear(d.getFullYear() + v); break;
-    case "hour": d.setHours(d.getHours() + v); break;
-    case "minute": d.setMinutes(d.getMinutes() + v); break;
+    case "day":
+      d.setDate(d.getDate() + v);
+      break;
+    case "week":
+      d.setDate(d.getDate() + v * 7);
+      break;
+    case "month":
+      d.setMonth(d.getMonth() + v);
+      break;
+    case "year":
+      d.setFullYear(d.getFullYear() + v);
+      break;
+    case "hour":
+      d.setHours(d.getHours() + v);
+      break;
+    case "minute":
+      d.setMinutes(d.getMinutes() + v);
+      break;
   }
   return d;
 }
@@ -66,7 +78,12 @@ function addDuration(date: Date, dur: { value: number; unit: DurationUnit }, sig
 import { getUserLocale } from "./locale";
 
 function formatDate(d: Date): string {
-  return d.toLocaleDateString(getUserLocale().language, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  return d.toLocaleDateString(getUserLocale().language, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 function daysBetween(a: Date, b: Date): number {

@@ -18,7 +18,6 @@ import { AppearancePage } from "./settings/AppearancePage";
 import { IndexingPage } from "./settings/IndexingPage";
 import { RegionalPage } from "./settings/RegionalPage";
 
-
 type NavItem = {
   id: string;
   label: string;
@@ -27,10 +26,10 @@ type NavItem = {
 };
 
 const PAGES: NavItem[] = [
-  { id: "general",    label: "General",    icon: Settings01Icon,          component: GeneralPage },
-  { id: "appearance", label: "Appearance", icon: PaintBoardIcon,          component: AppearancePage },
-  { id: "indexing",   label: "Indexing",   icon: HardDriveIcon,           component: IndexingPage },
-  { id: "regional",   label: "Regional",   icon: GlobeIcon,               component: RegionalPage },
+  { id: "general", label: "General", icon: Settings01Icon, component: GeneralPage },
+  { id: "appearance", label: "Appearance", icon: PaintBoardIcon, component: AppearancePage },
+  { id: "indexing", label: "Indexing", icon: HardDriveIcon, component: IndexingPage },
+  { id: "regional", label: "Regional", icon: GlobeIcon, component: RegionalPage },
 ];
 
 const appWindow = getCurrentWindow();
@@ -46,19 +45,16 @@ export function SettingsApp() {
         <div className="h-9 shrink-0" data-tauri-drag-region />
         <h1 className="px-3 pb-5 text-xl font-semibold tracking-tight">Settings</h1>
         {PAGES.map((item) => (
-            <Button
-              key={item.id}
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "justify-start gap-2 text-[13px]",
-                pageId === item.id && "bg-accent"
-              )}
-              onClick={() => setPageId(item.id)}
-            >
-              <HugeiconsIcon icon={item.icon} strokeWidth={2} className="size-3.5" />
-              {item.label}
-            </Button>
+          <Button
+            key={item.id}
+            variant="ghost"
+            size="sm"
+            className={cn("justify-start gap-2 text-[13px]", pageId === item.id && "bg-accent")}
+            onClick={() => setPageId(item.id)}
+          >
+            <HugeiconsIcon icon={item.icon} strokeWidth={2} className="size-3.5" />
+            {item.label}
+          </Button>
         ))}
       </nav>
       <div className="flex flex-1 flex-col overflow-hidden">

@@ -11,7 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon, PlusSignIcon, FolderOpenIcon, Refresh01Icon } from "@hugeicons/core-free-icons";
+import {
+  Cancel01Icon,
+  PlusSignIcon,
+  FolderOpenIcon,
+  Refresh01Icon,
+} from "@hugeicons/core-free-icons";
 import {
   getFileSearchSettings,
   setFileSearchSettings,
@@ -41,8 +46,7 @@ export function IndexingPage() {
   });
 
   const updateSettings = useMutation({
-    mutationFn: (updated: FileSearchSettings) =>
-      setFileSearchSettings(updated),
+    mutationFn: (updated: FileSearchSettings) => setFileSearchSettings(updated),
     onMutate: (updated) => {
       queryClient.setQueryData(["file-search-settings"], updated);
     },
@@ -118,15 +122,10 @@ export function IndexingPage() {
   return (
     <div className="flex flex-col gap-2">
       <SettingsSection>
-        <SettingsRow
-          title="File search"
-          description="Search files from the launcher"
-        >
+        <SettingsRow title="File search" description="Search files from the launcher">
           <Switch
             checked={settings.enabled}
-            onCheckedChange={(enabled) =>
-              updateSettings.mutate({ ...settings, enabled })
-            }
+            onCheckedChange={(enabled) => updateSettings.mutate({ ...settings, enabled })}
           />
         </SettingsRow>
       </SettingsSection>
@@ -136,16 +135,18 @@ export function IndexingPage() {
           <SettingsSection>
             <div className="px-4 py-3.5">
               <div className="text-sm font-medium">Indexed directories</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">
-                Folders to scan for files
-              </div>
+              <div className="mt-0.5 text-xs text-muted-foreground">Folders to scan for files</div>
               <div className="mt-3 flex flex-col gap-1.5">
                 {settings.directories.map((dir) => (
                   <div
                     key={dir}
                     className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs"
                   >
-                    <HugeiconsIcon icon={FolderOpenIcon} strokeWidth={2} className="size-3.5 shrink-0 text-muted-foreground" />
+                    <HugeiconsIcon
+                      icon={FolderOpenIcon}
+                      strokeWidth={2}
+                      className="size-3.5 shrink-0 text-muted-foreground"
+                    />
                     <span className="flex-1 truncate">{dir}</span>
                     <button
                       type="button"
@@ -231,10 +232,7 @@ export function IndexingPage() {
           </SettingsSection>
 
           <SettingsSection>
-            <SettingsRow
-              title="Max folder depth"
-              description="How many levels deep to search"
-            >
+            <SettingsRow title="Max folder depth" description="How many levels deep to search">
               <Select
                 value={String(settings.max_depth)}
                 onValueChange={(v) =>

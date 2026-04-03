@@ -17,7 +17,15 @@ export function SearchFooter() {
   return (
     <div className="flex items-center border-t px-2 py-1">
       <div className="flex items-center gap-3">
-        <Hint keys={<><Kbd>↑</Kbd><Kbd>↓</Kbd></>} label="navigate" />
+        <Hint
+          keys={
+            <>
+              <Kbd>↑</Kbd>
+              <Kbd>↓</Kbd>
+            </>
+          }
+          label="navigate"
+        />
         <Hint keys={<Kbd>↵</Kbd>} label="open" />
         <Hint keys={<Kbd>esc</Kbd>} label="dismiss" />
       </div>

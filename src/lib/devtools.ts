@@ -21,9 +21,7 @@ export function isDevToolsQuery(input: string): boolean {
   return IP_KEYWORDS.has(q);
 }
 
-export async function tryDevTools(
-  input: string,
-): Promise<InstantAnswer[] | null> {
+export async function tryDevTools(input: string): Promise<InstantAnswer[] | null> {
   const q = input.trim().toLowerCase();
   if (!IP_KEYWORDS.has(q)) return null;
 

@@ -80,17 +80,21 @@ function parse(tokens: Token[]): number | null {
     return tokens[pos++];
   }
 
+  function peekOp(): string | undefined {
+    const t = peek();
+    return t?.type === "op" ? t.value : undefined;
+  }
+
   function parseExpr(): number | null {
     let left = parseTerm();
     if (left === null) return null;
-    while (peek()?.type === "op" && (peek() as any).value === "+") {
+    while (peekOp() === "+") {
       consume();
       const right = parseTerm();
       if (right === null) return null;
       left = left + right;
     }
-    // Handle subtraction separately to avoid issues with the while condition
-    while (peek()?.type === "op" && (peek() as any).value === "-") {
+    while (peekOp() === "-") {
       consume();
       const right = parseTerm();
       if (right === null) return null;
@@ -102,11 +106,8 @@ function parse(tokens: Token[]): number | null {
   function parseTerm(): number | null {
     let left = parseFactor();
     if (left === null) return null;
-    while (
-      peek()?.type === "op" &&
-      ("*/%".includes((peek() as any).value))
-    ) {
-      const op = (consume() as any).value;
+    while (peekOp() && "*/%".includes(peekOp()!)) {
+      const op = (consume() as Extract<Token, { type: "op" }>).value;
       const right = parseFactor();
       if (right === null) return null;
       if (op === "*") left = left * right;
@@ -119,7 +120,7 @@ function parse(tokens: Token[]): number | null {
   function parseFactor(): number | null {
     const base = parseBase();
     if (base === null) return null;
-    if (peek()?.type === "op" && (peek() as any).value === "^") {
+    if (peekOp() === "^") {
       consume();
       const exp = parseFactor(); // right-associative
       if (exp === null) return null;

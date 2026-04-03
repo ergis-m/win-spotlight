@@ -17,24 +17,7 @@ use tauri::window::{Color, Effect, EffectState, EffectsBuilder};
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::{Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
-use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_USE_IMMERSIVE_DARK_MODE, DWMWA_WINDOW_CORNER_PREFERENCE, DWM_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND};
-
-/// Apply dark title bar via DWM on Windows 11.
-fn set_dark_title_bar(win: &tauri::WebviewWindow) {
-    if let Ok(handle) = win.window_handle() {
-        if let raw_window_handle::RawWindowHandle::Win32(h) = handle.as_ref() {
-            let dark: i32 = 1;
-            unsafe {
-                let _ = DwmSetWindowAttribute(
-                    windows::Win32::Foundation::HWND(h.hwnd.get() as *mut _),
-                    DWMWA_USE_IMMERSIVE_DARK_MODE,
-                    &dark as *const i32 as *const _,
-                    std::mem::size_of::<i32>() as u32,
-                );
-            }
-        }
-    }
-}
+use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWM_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND};
 
 /// Apply rounded corners via DWM on Windows 11.
 fn set_rounded_corners(win: &tauri::WebviewWindow) {

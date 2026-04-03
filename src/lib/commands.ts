@@ -33,9 +33,7 @@ export function matchCommands(query: string): SearchResult[] {
   const q = query.toLowerCase().trim();
 
   return COMMANDS.filter((cmd) =>
-    cmd.aliases.some(
-      (alias) => alias.startsWith(q) || q.startsWith(alias),
-    ),
+    cmd.aliases.some((alias) => alias.startsWith(q) || q.startsWith(alias)),
   ).map((cmd) => ({
     id: cmd.id,
     title: cmd.title,

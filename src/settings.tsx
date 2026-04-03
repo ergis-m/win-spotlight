@@ -20,5 +20,5 @@ createRoot(document.getElementById("settings-app")!).render(
     <QueryClientProvider client={queryClient}>
       <SettingsApp />
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );

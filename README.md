@@ -2,6 +2,8 @@
 
 A fast, Raycast-style launcher for Windows. Press **Alt+Space** to open a floating search bar, find apps instantly, search files across your system, and switch between running windows.
 
+[![Download Latest](https://img.shields.io/github/v/release/ergis-m/win-spotlight?label=Download&style=for-the-badge)](https://github.com/ergis-m/win-spotlight/releases/latest/download/Win-Spotlight-setup.exe)
+
 ![WinApp screenshot](screenshot.png)
 
 ## Features

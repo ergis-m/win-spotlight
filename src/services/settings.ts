@@ -41,9 +41,7 @@ export function getFileSearchSettings(): Promise<FileSearchSettings> {
   return invoke<FileSearchSettings>("get_file_search_settings");
 }
 
-export function setFileSearchSettings(
-  settings: FileSearchSettings,
-): Promise<void> {
+export function setFileSearchSettings(settings: FileSearchSettings): Promise<void> {
   return invoke("set_file_search_settings", { settings });
 }
 

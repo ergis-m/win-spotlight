@@ -20,9 +20,7 @@ export function ResultItem({ item, onSelect, showBadge }: ResultItemProps) {
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <ResultIcon item={item} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm font-medium leading-tight">
-            {item.title}
-          </span>
+          <span className="truncate text-sm font-medium leading-tight">{item.title}</span>
           <span className="truncate text-xs leading-tight text-muted-foreground">
             {item.subtitle}
           </span>

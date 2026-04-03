@@ -3,11 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getVersion } from "@tauri-apps/api/app";
 import { useQuery } from "@tanstack/react-query";
-import {
-  type UpdateStatus,
-  checkForUpdate,
-  downloadAndInstall,
-} from "@/services/updater";
+import { type UpdateStatus, checkForUpdate, downloadAndInstall } from "@/services/updater";
 
 export function AboutPage() {
   const { data: appVersion } = useQuery({
@@ -51,9 +47,7 @@ export function AboutPage() {
       <Card className="py-0">
         <CardContent className="p-4">
           <div className="text-sm font-semibold">Win Spotlight</div>
-          <div className="mt-1 text-xs text-muted-foreground">
-            Version {appVersion ?? "..."}
-          </div>
+          <div className="mt-1 text-xs text-muted-foreground">Version {appVersion ?? "..."}</div>
         </CardContent>
       </Card>
 

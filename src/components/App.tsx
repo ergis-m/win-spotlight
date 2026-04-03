@@ -7,13 +7,12 @@ import {
   CommandEmpty,
   CommandGroup,
 } from "@/components/ui/command";
+import { searchItems, activateItem, hideWindow, type SearchMode } from "@/services/search";
 import {
-  searchItems,
-  activateItem,
-  hideWindow,
-  type SearchMode,
-} from "@/services/search";
-import { getInstantAnswer, getAsyncInstantAnswer, getInstantAnswerHints } from "@/lib/instant-answer";
+  getInstantAnswer,
+  getAsyncInstantAnswer,
+  getInstantAnswerHints,
+} from "@/lib/instant-answer";
 import { loadAndApplySettings } from "@/lib/theme";
 import { matchCommands } from "@/lib/commands";
 import { invoke } from "@tauri-apps/api/core";
@@ -107,9 +106,7 @@ export function App() {
   const running = results.filter((r) => r.kind === "window");
   const files = results.filter((r) => r.kind === "file");
   const urls = results.filter((r) => r.kind === "url");
-  const apps = results.filter(
-    (r) => r.kind !== "window" && r.kind !== "file" && r.kind !== "url",
-  );
+  const apps = results.filter((r) => r.kind !== "window" && r.kind !== "file" && r.kind !== "url");
 
   const showInstantAnswers = tab === "all" && instantAnswers.length > 0;
   const showHints = tab === "all" && hints.length > 0 && !showInstantAnswers;
@@ -117,127 +114,127 @@ export function App() {
 
   return (
     <Onboarding>
-    <Command
-      ref={commandRef}
-      className="rounded-none! bg-background/20 text-foreground p-1"
-      shouldFilter={false}
-      loop
-      value={selectedValue}
-      onValueChange={setSelectedValue}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          setQuery("");
-          setTab("all");
-          hideWindow();
-        }
-        if (e.key === "Tab") {
-          e.preventDefault();
-          setTab((prev) => {
-            const idx = TABS.findIndex((t) => t.key === prev);
-            const next = e.shiftKey
-              ? (idx - 1 + TABS.length) % TABS.length
-              : (idx + 1) % TABS.length;
-            return TABS[next].key;
-          });
-        }
-      }}
-    >
-      <CommandInput
-        ref={inputRef}
-        placeholder={
-          tab === "all"
-            ? "Search apps, files..."
-            : tab === "apps"
-              ? "Search apps..."
-              : tab === "files"
-                ? "Search files..."
-                : "Search media..."
-        }
-        className="text-xs"
-        value={query}
-        onValueChange={(v) => {
-          setQuery(v);
-          setSelectedValue("");
-          listRef.current?.scrollTo(0, 0);
+      <Command
+        ref={commandRef}
+        className="rounded-none! bg-background/20 text-foreground p-1"
+        shouldFilter={false}
+        loop
+        value={selectedValue}
+        onValueChange={setSelectedValue}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            setQuery("");
+            setTab("all");
+            hideWindow();
+          }
+          if (e.key === "Tab") {
+            e.preventDefault();
+            setTab((prev) => {
+              const idx = TABS.findIndex((t) => t.key === prev);
+              const next = e.shiftKey
+                ? (idx - 1 + TABS.length) % TABS.length
+                : (idx + 1) % TABS.length;
+              return TABS[next].key;
+            });
+          }
         }}
       >
-        <div className="flex items-center gap-0.5">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition-colors ${
-                tab === t.key
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-              onClick={() => {
-                setTab(t.key);
-                inputRef.current?.focus();
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-      </CommandInput>
-      <CommandList ref={listRef} className="max-h-none flex-1 scrollbar-thin p-0!">
-        {showInstantAnswers && <InstantAnswerGroup answers={instantAnswers} />}
-        {showHints && <HintGroup hints={hints} onSelect={fillHint} />}
-        <CommandEmpty>No results found.</CommandEmpty>
-        {commands.length > 0 && (
-          <CommandGroup heading="Commands">
-            {commands.map((item) => (
-              <ResultItem key={item.id} item={item} onSelect={handleSelect} />
+        <CommandInput
+          ref={inputRef}
+          placeholder={
+            tab === "all"
+              ? "Search apps, files..."
+              : tab === "apps"
+                ? "Search apps..."
+                : tab === "files"
+                  ? "Search files..."
+                  : "Search media..."
+          }
+          className="text-xs"
+          value={query}
+          onValueChange={(v) => {
+            setQuery(v);
+            setSelectedValue("");
+            listRef.current?.scrollTo(0, 0);
+          }}
+        >
+          <div className="flex items-center gap-0.5">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition-colors ${
+                  tab === t.key
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() => {
+                  setTab(t.key);
+                  inputRef.current?.focus();
+                }}
+              >
+                {t.label}
+              </button>
             ))}
-          </CommandGroup>
-        )}
-        {showGrouped ? (
-          <>
-            {running.length > 0 && (
-              <CommandGroup heading="Running">
-                {running.map((item) => (
-                  <ResultItem
-                    key={item.id}
-                    item={item}
-                    onSelect={handleSelect}
-                    showBadge="Running"
-                  />
-                ))}
-              </CommandGroup>
-            )}
-            {urls.length > 0 && (
-              <CommandGroup heading="Web">
-                {urls.map((item) => (
-                  <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-                ))}
-              </CommandGroup>
-            )}
-            {apps.length > 0 && (
-              <CommandGroup heading="Applications">
-                {apps.map((item) => (
-                  <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-                ))}
-              </CommandGroup>
-            )}
-            {files.length > 0 && (
-              <CommandGroup heading="Files">
-                {files.map((item) => (
-                  <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-                ))}
-              </CommandGroup>
-            )}
-          </>
-        ) : (
-          <CommandGroup>
-            {results.map((item) => (
-              <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-            ))}
-          </CommandGroup>
-        )}
-      </CommandList>
-      <SearchFooter />
-    </Command>
+          </div>
+        </CommandInput>
+        <CommandList ref={listRef} className="max-h-none flex-1 scrollbar-thin p-0!">
+          {showInstantAnswers && <InstantAnswerGroup answers={instantAnswers} />}
+          {showHints && <HintGroup hints={hints} onSelect={fillHint} />}
+          <CommandEmpty>No results found.</CommandEmpty>
+          {commands.length > 0 && (
+            <CommandGroup heading="Commands">
+              {commands.map((item) => (
+                <ResultItem key={item.id} item={item} onSelect={handleSelect} />
+              ))}
+            </CommandGroup>
+          )}
+          {showGrouped ? (
+            <>
+              {running.length > 0 && (
+                <CommandGroup heading="Running">
+                  {running.map((item) => (
+                    <ResultItem
+                      key={item.id}
+                      item={item}
+                      onSelect={handleSelect}
+                      showBadge="Running"
+                    />
+                  ))}
+                </CommandGroup>
+              )}
+              {urls.length > 0 && (
+                <CommandGroup heading="Web">
+                  {urls.map((item) => (
+                    <ResultItem key={item.id} item={item} onSelect={handleSelect} />
+                  ))}
+                </CommandGroup>
+              )}
+              {apps.length > 0 && (
+                <CommandGroup heading="Applications">
+                  {apps.map((item) => (
+                    <ResultItem key={item.id} item={item} onSelect={handleSelect} />
+                  ))}
+                </CommandGroup>
+              )}
+              {files.length > 0 && (
+                <CommandGroup heading="Files">
+                  {files.map((item) => (
+                    <ResultItem key={item.id} item={item} onSelect={handleSelect} />
+                  ))}
+                </CommandGroup>
+              )}
+            </>
+          ) : (
+            <CommandGroup>
+              {results.map((item) => (
+                <ResultItem key={item.id} item={item} onSelect={handleSelect} />
+              ))}
+            </CommandGroup>
+          )}
+        </CommandList>
+        <SearchFooter />
+      </Command>
     </Onboarding>
   );
 }

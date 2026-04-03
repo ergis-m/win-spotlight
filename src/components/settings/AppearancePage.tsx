@@ -24,7 +24,7 @@ export function AppearancePage() {
     onMutate: (theme) => {
       applyTheme(theme as Theme);
       queryClient.setQueryData(["settings"], (prev: typeof settings) =>
-        prev ? { ...prev, theme } : prev
+        prev ? { ...prev, theme } : prev,
       );
     },
     onError: () => {
@@ -37,7 +37,7 @@ export function AppearancePage() {
     mutationFn: (size: string) => setLauncherSize(size),
     onMutate: (size) => {
       queryClient.setQueryData(["settings"], (prev: typeof settings) =>
-        prev ? { ...prev, launcher_size: size } : prev
+        prev ? { ...prev, launcher_size: size } : prev,
       );
     },
     onError: () => {
@@ -50,10 +50,7 @@ export function AppearancePage() {
   return (
     <div className="flex flex-col gap-2">
       <SettingsSection>
-        <SettingsRow
-          title="Theme"
-          description="Select your preferred appearance"
-        >
+        <SettingsRow title="Theme" description="Select your preferred appearance">
           <Select value={settings.theme} onValueChange={(v) => themeMutation.mutate(v)}>
             <SelectTrigger className="w-32">
               <SelectValue />

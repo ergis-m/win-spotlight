@@ -10,7 +10,9 @@
 import { getUserLocale } from "./locale";
 
 function fmt(n: number): string {
-  return parseFloat(n.toPrecision(10)).toLocaleString(getUserLocale().language, { maximumFractionDigits: 6 });
+  return parseFloat(n.toPrecision(10)).toLocaleString(getUserLocale().language, {
+    maximumFractionDigits: 6,
+  });
 }
 
 export function tryPercentage(input: string): { result: string; label: string } | null {
@@ -23,7 +25,7 @@ export function tryPercentage(input: string): { result: string; label: string } 
     const pct = parseFloat(m[1].replace(/[,_]/g, ""));
     const base = parseFloat(m[2].replace(/[,_]/g, ""));
     if (isNaN(pct) || isNaN(base)) return null;
-    return { result: fmt(base * pct / 100), label: `${m[1]}% of ${m[2]}` };
+    return { result: fmt((base * pct) / 100), label: `${m[1]}% of ${m[2]}` };
   }
 
   // "what % is 30 of 200" / "what percent is 30 of 200"
@@ -32,7 +34,7 @@ export function tryPercentage(input: string): { result: string; label: string } 
     const part = parseFloat(m[1].replace(/[,_]/g, ""));
     const whole = parseFloat(m[2].replace(/[,_]/g, ""));
     if (isNaN(part) || isNaN(whole) || whole === 0) return null;
-    return { result: `${fmt(part / whole * 100)}%`, label: `${m[1]} is what % of ${m[2]}` };
+    return { result: `${fmt((part / whole) * 100)}%`, label: `${m[1]} is what % of ${m[2]}` };
   }
 
   // "30 as % of 200" / "30 as percent of 200"
@@ -41,7 +43,7 @@ export function tryPercentage(input: string): { result: string; label: string } 
     const part = parseFloat(m[1].replace(/[,_]/g, ""));
     const whole = parseFloat(m[2].replace(/[,_]/g, ""));
     if (isNaN(part) || isNaN(whole) || whole === 0) return null;
-    return { result: `${fmt(part / whole * 100)}%`, label: `${m[1]} as % of ${m[2]}` };
+    return { result: `${fmt((part / whole) * 100)}%`, label: `${m[1]} as % of ${m[2]}` };
   }
 
   // "100 + 15%" (add percentage)
