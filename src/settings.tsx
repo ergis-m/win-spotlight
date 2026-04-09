@@ -10,7 +10,8 @@ loadAndApplySettings();
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: Infinity,
+      refetchOnWindowFocus: true,
+      staleTime: 0,
     },
   },
 });

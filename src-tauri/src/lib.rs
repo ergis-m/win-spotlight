@@ -64,6 +64,7 @@ pub fn run() {
             index.start_background_rebuild(app_data_dir.clone());
             app.manage(index);
             app.manage(usage::UsageTracker::new());
+            app.manage(window::PinState::new());
 
             // Start background file indexing.
             let file_index = Arc::new(file_indexer::FileIndex::new());
@@ -134,10 +135,13 @@ pub fn run() {
         .on_window_event(|win, event| {
             if win.label() == "main" {
                 if let WindowEvent::Focused(false) = event {
-                    if cfg!(debug_assertions) {
-                        println!("[dev] launcher lost focus — hiding");
+                    let pinned = win.state::<window::PinState>().is_pinned();
+                    if !pinned {
+                        if cfg!(debug_assertions) {
+                            println!("[dev] launcher lost focus — hiding");
+                        }
+                        let _ = win.hide();
                     }
-                    let _ = win.hide();
                 }
             } else if win.label() == "settings" {
                 if let WindowEvent::CloseRequested { api, .. } = event {
@@ -161,6 +165,8 @@ pub fn run() {
             commands::get_file_index_status,
             commands::get_file_thumbnail,
             commands::get_network_info,
+            commands::is_pinned,
+            commands::toggle_pin,
             commands::is_onboarding_completed,
             commands::complete_onboarding,
             commands::reset_onboarding,

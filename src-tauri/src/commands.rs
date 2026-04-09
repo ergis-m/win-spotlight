@@ -237,3 +237,15 @@ pub fn get_network_info() -> crate::network::NetworkInfo {
     crate::network::get_network_info()
 }
 
+// ── Pin commands ──
+
+#[tauri::command]
+pub fn is_pinned(state: State<'_, crate::window::PinState>) -> bool {
+    state.is_pinned()
+}
+
+#[tauri::command]
+pub fn toggle_pin(state: State<'_, crate::window::PinState>) -> bool {
+    state.toggle()
+}
+
