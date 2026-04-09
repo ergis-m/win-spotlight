@@ -46,14 +46,9 @@ export function IndexingPage() {
 
   const updateSettings = useMutation({
     mutationFn: (updated: FileSearchSettings) => setFileSearchSettings(updated),
-    onMutate: (updated) => {
-      queryClient.setQueryData(["file-search-settings"], updated);
-    },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["file-index-status"] });
-    },
-    onError: () => {
       queryClient.invalidateQueries({ queryKey: ["file-search-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["file-index-status"] });
     },
   });
 

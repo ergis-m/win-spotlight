@@ -144,7 +144,10 @@ pub fn set_theme(
 
 #[tauri::command]
 pub fn set_autostart(enabled: bool) -> Result<(), String> {
-    crate::settings::set_autostart(enabled)
+    println!("[autostart] set_autostart called with enabled={}", enabled);
+    let result = crate::settings::set_autostart(enabled);
+    println!("[autostart] result: {:?}", result);
+    result
 }
 
 #[tauri::command]

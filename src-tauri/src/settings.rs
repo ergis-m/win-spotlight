@@ -116,115 +116,34 @@ impl SettingsManager {
 }
 
 pub fn is_autostart_enabled() -> bool {
-    // Check registry first (instant) before falling back to schtasks (spawns subprocess).
-    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let registry_exists = hkcu
+    RegKey::predef(HKEY_CURRENT_USER)
         .open_subkey(RUN_KEY)
         .and_then(|key| key.get_value::<String, _>(APP_NAME))
-        .is_ok();
-
-    if registry_exists {
-        return true;
-    }
-
-    Command::new("schtasks")
-        .args(["/Query", "/TN", TASK_NAME])
-        .creation_flags(0x08000000)
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
+        .is_ok()
 }
 
 pub fn set_autostart(enabled: bool) -> Result<(), String> {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let key = hkcu
+        .open_subkey_with_flags(RUN_KEY, KEY_SET_VALUE)
+        .map_err(|e| e.to_string())?;
+
     if enabled {
         let exe = std::env::current_exe().map_err(|e| e.to_string())?;
         let exe_path = exe.to_string_lossy().to_string();
-
-        // Create a scheduled task that runs at logon with high priority
-        let xml = format!(
-            r#"<?xml version="1.0" encoding="UTF-16"?>
-<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-  <RegistrationInfo>
-    <Description>Start Win Spotlight at logon</Description>
-  </RegistrationInfo>
-  <Triggers>
-    <LogonTrigger>
-      <Enabled>true</Enabled>
-    </LogonTrigger>
-  </Triggers>
-  <Principals>
-    <Principal id="Author">
-      <LogonType>InteractiveToken</LogonType>
-      <RunLevel>LeastPrivilege</RunLevel>
-    </Principal>
-  </Principals>
-  <Settings>
-    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
-    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
-    <Priority>4</Priority>
-    <IdleSettings>
-      <StopOnIdleEnd>false</StopOnIdleEnd>
-      <RestartOnIdle>false</RestartOnIdle>
-    </IdleSettings>
-  </Settings>
-  <Actions>
-    <Exec>
-      <Command>{exe_path}</Command>
-    </Exec>
-  </Actions>
-</Task>"#
-        );
-
-        // Write XML to a temp file
-        let temp_dir = std::env::temp_dir();
-        let xml_path = temp_dir.join("winspotlight_task.xml");
-        std::fs::write(&xml_path, xml).map_err(|e| e.to_string())?;
-
-        let output = Command::new("schtasks")
-            .args([
-                "/Create",
-                "/TN",
-                TASK_NAME,
-                "/XML",
-                &xml_path.to_string_lossy(),
-                "/F",
-            ])
-            .creation_flags(0x08000000)
-            .output()
+        key.set_value(APP_NAME, &exe_path)
             .map_err(|e| e.to_string())?;
-
-        let _ = std::fs::remove_file(&xml_path);
-
-        if !output.status.success() {
-            return Err(String::from_utf8_lossy(&output.stderr).to_string());
-        }
-
-        // Clean up old registry entry if it exists
-        if let Ok(key) = RegKey::predef(HKEY_CURRENT_USER)
-            .open_subkey_with_flags(RUN_KEY, KEY_SET_VALUE)
-        {
-            let _ = key.delete_value(APP_NAME);
-        }
-
-        Ok(())
     } else {
-        // Remove scheduled task
-        let _ = Command::new("schtasks")
-            .args(["/Delete", "/TN", TASK_NAME, "/F"])
-            .creation_flags(0x08000000)
-            .output();
-
-        // Also clean up registry entry in case it exists
-        if let Ok(key) = RegKey::predef(HKEY_CURRENT_USER)
-            .open_subkey_with_flags(RUN_KEY, KEY_SET_VALUE)
-        {
-            let _ = key.delete_value(APP_NAME);
-        }
-
-        Ok(())
+        let _ = key.delete_value(APP_NAME);
     }
+
+    // Clean up any legacy scheduled task
+    let _ = Command::new("schtasks")
+        .args(["/Delete", "/TN", TASK_NAME, "/F"])
+        .creation_flags(0x08000000)
+        .output();
+
+    Ok(())
 }
 
 pub fn app_data_dir() -> PathBuf {

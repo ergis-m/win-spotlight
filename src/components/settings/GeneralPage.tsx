@@ -53,13 +53,16 @@ export function GeneralPage() {
   }, [updateStatus]);
 
   const autostartMutation = useMutation({
-    mutationFn: (enabled: boolean) => setAutostart(enabled),
-    onMutate: (enabled) => {
-      queryClient.setQueryData(["settings"], (prev: typeof settings) =>
-        prev ? { ...prev, autostart: enabled } : prev,
-      );
+    mutationFn: (enabled: boolean) => {
+      console.log("[autostart] mutating:", enabled);
+      return setAutostart(enabled);
     },
-    onError: () => {
+    onSuccess: () => {
+      console.log("[autostart] success");
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+    },
+    onError: (err) => {
+      console.error("[autostart] error:", err);
       queryClient.invalidateQueries({ queryKey: ["settings"] });
     },
   });
@@ -111,7 +114,8 @@ export function GeneralPage() {
         </ItemContent>
         <ItemActions>
           <Switch
-            checked={settings.autostart}
+            checked={autostartMutation.isPending ? autostartMutation.variables : settings.autostart}
+            disabled={autostartMutation.isPending}
             onCheckedChange={(v) => autostartMutation.mutate(v)}
           />
         </ItemActions>

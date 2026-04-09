@@ -22,24 +22,15 @@ export function AppearancePage() {
     mutationFn: (theme: string) => setTheme(theme),
     onMutate: (theme) => {
       applyTheme(theme as Theme);
-      queryClient.setQueryData(["settings"], (prev: typeof settings) =>
-        prev ? { ...prev, theme } : prev,
-      );
     },
-    onError: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
-      if (settings) applyTheme(settings.theme as Theme);
     },
   });
 
   const sizeMutation = useMutation({
     mutationFn: (size: string) => setLauncherSize(size),
-    onMutate: (size) => {
-      queryClient.setQueryData(["settings"], (prev: typeof settings) =>
-        prev ? { ...prev, launcher_size: size } : prev,
-      );
-    },
-    onError: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
     },
   });
