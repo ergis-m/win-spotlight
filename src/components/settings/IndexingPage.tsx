@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Cancel01Icon,
@@ -24,8 +25,6 @@ import {
   rebuildFileIndex,
   type FileSearchSettings,
 } from "@/services/settings";
-import { SettingsRow } from "./SettingsRow";
-import { SettingsSection } from "./SettingsSection";
 
 export function IndexingPage() {
   const queryClient = useQueryClient();
@@ -121,21 +120,25 @@ export function IndexingPage() {
 
   return (
     <div className="flex flex-col gap-2">
-      <SettingsSection>
-        <SettingsRow title="File search" description="Search files from the launcher">
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>File search</ItemTitle>
+          <ItemDescription>Search files from the launcher</ItemDescription>
+        </ItemContent>
+        <ItemActions>
           <Switch
             checked={settings.enabled}
             onCheckedChange={(enabled) => updateSettings.mutate({ ...settings, enabled })}
           />
-        </SettingsRow>
-      </SettingsSection>
+        </ItemActions>
+      </Item>
 
       {settings.enabled && (
         <>
-          <SettingsSection>
-            <div className="px-4 py-3.5">
-              <div className="text-sm font-medium">Indexed directories</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">Folders to scan for files</div>
+          <Item variant="muted" size="sm" className="items-start">
+            <ItemContent>
+              <ItemTitle>Indexed directories</ItemTitle>
+              <ItemDescription>Folders to scan for files</ItemDescription>
               <div className="mt-3 flex flex-col gap-1.5">
                 {settings.directories.map((dir) => (
                   <div
@@ -180,15 +183,13 @@ export function IndexingPage() {
                   </Button>
                 </div>
               </div>
-            </div>
-          </SettingsSection>
+            </ItemContent>
+          </Item>
 
-          <SettingsSection>
-            <div className="px-4 py-3.5">
-              <div className="text-sm font-medium">Excluded folders</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">
-                Folder names to skip during indexing
-              </div>
+          <Item variant="muted" size="sm" className="items-start">
+            <ItemContent>
+              <ItemTitle>Excluded folders</ItemTitle>
+              <ItemDescription>Folder names to skip during indexing</ItemDescription>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {settings.excluded_dirs.map((name) => (
                   <span
@@ -228,11 +229,15 @@ export function IndexingPage() {
                   Add
                 </Button>
               </div>
-            </div>
-          </SettingsSection>
+            </ItemContent>
+          </Item>
 
-          <SettingsSection>
-            <SettingsRow title="Max folder depth" description="How many levels deep to search">
+          <Item variant="muted" size="sm">
+            <ItemContent>
+              <ItemTitle>Max folder depth</ItemTitle>
+              <ItemDescription>How many levels deep to search</ItemDescription>
+            </ItemContent>
+            <ItemActions>
               <Select
                 value={String(settings.max_depth)}
                 onValueChange={(v) =>
@@ -253,18 +258,19 @@ export function IndexingPage() {
                   <SelectItem value="20">20</SelectItem>
                 </SelectContent>
               </Select>
-            </SettingsRow>
-          </SettingsSection>
+            </ItemActions>
+          </Item>
 
-          <SettingsSection>
-            <SettingsRow
-              title="Index status"
-              description={
-                status?.ready
+          <Item variant="muted" size="sm">
+            <ItemContent>
+              <ItemTitle>Index status</ItemTitle>
+              <ItemDescription>
+                {status?.ready
                   ? `${status.file_count.toLocaleString()} files indexed · ${lastIndexed}`
-                  : "Indexing..."
-              }
-            >
+                  : "Indexing..."}
+              </ItemDescription>
+            </ItemContent>
+            <ItemActions>
               <Button
                 variant="outline"
                 size="sm"
@@ -279,8 +285,8 @@ export function IndexingPage() {
                 />
                 Rebuild
               </Button>
-            </SettingsRow>
-          </SettingsSection>
+            </ItemActions>
+          </Item>
         </>
       )}
     </div>

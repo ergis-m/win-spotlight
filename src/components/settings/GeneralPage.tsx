@@ -2,12 +2,11 @@ import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
+import { Kbd } from "@/components/ui/kbd";
 import { getVersion } from "@tauri-apps/api/app";
 import { getSettings, setAutostart } from "@/services/settings";
 import { type UpdateStatus, checkForUpdate, downloadAndInstall } from "@/services/updater";
-import { SettingsRow } from "./SettingsRow";
-import { SettingsSection } from "./SettingsSection";
 
 export function GeneralPage() {
   const queryClient = useQueryClient();
@@ -69,65 +68,64 @@ export function GeneralPage() {
 
   return (
     <div className="flex flex-col gap-2">
-      <Card className="py-0">
-        <CardContent className="p-4">
-          <div className="text-sm font-semibold">Win Spotlight</div>
-          <div className="mt-1 text-xs text-muted-foreground">Version {appVersion ?? "..."}</div>
-        </CardContent>
-      </Card>
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Win Spotlight</ItemTitle>
+          <ItemDescription>Version {appVersion ?? "..."}</ItemDescription>
+        </ItemContent>
+      </Item>
 
-      <Card className="py-0">
-        <CardContent className="flex items-center justify-between p-4">
-          <div>
-            <div className="text-sm font-semibold">Updates</div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              <StatusText status={updateStatus} />
-            </div>
-          </div>
-          <div>
-            {updateStatus.state === "available" ? (
-              <Button size="sm" onClick={handleInstall}>
-                Install v{updateStatus.version}
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleCheckForUpdate}
-                disabled={
-                  updateStatus.state === "checking" ||
-                  updateStatus.state === "downloading" ||
-                  updateStatus.state === "installing"
-                }
-              >
-                {updateStatus.state === "checking" ? "Checking..." : "Check for updates"}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Updates</ItemTitle>
+          <ItemDescription>
+            <StatusText status={updateStatus} />
+          </ItemDescription>
+        </ItemContent>
+        <ItemActions>
+          {updateStatus.state === "available" ? (
+            <Button size="sm" onClick={handleInstall}>
+              Install v{updateStatus.version}
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCheckForUpdate}
+              disabled={
+                updateStatus.state === "checking" ||
+                updateStatus.state === "downloading" ||
+                updateStatus.state === "installing"
+              }
+            >
+              {updateStatus.state === "checking" ? "Checking..." : "Check for updates"}
+            </Button>
+          )}
+        </ItemActions>
+      </Item>
 
-      <SettingsSection>
-        <SettingsRow
-          title="Launch at login"
-          description="Start Win Spotlight when you sign in to Windows"
-        >
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Launch at login</ItemTitle>
+          <ItemDescription>Start Win Spotlight when you sign in to Windows</ItemDescription>
+        </ItemContent>
+        <ItemActions>
           <Switch
             checked={settings.autostart}
             onCheckedChange={(v) => autostartMutation.mutate(v)}
           />
-        </SettingsRow>
-      </SettingsSection>
-      <SettingsSection>
-        <SettingsRow
-          title="Activation shortcut"
-          description="Press this shortcut to open the launcher"
-        >
-          <span className="shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground">
-            Alt + Space
-          </span>
-        </SettingsRow>
-      </SettingsSection>
+        </ItemActions>
+      </Item>
+
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Activation shortcut</ItemTitle>
+          <ItemDescription>Press this shortcut to open the launcher</ItemDescription>
+        </ItemContent>
+        <ItemActions>
+          <Kbd>Alt + Space</Kbd>
+        </ItemActions>
+      </Item>
     </div>
   );
 }

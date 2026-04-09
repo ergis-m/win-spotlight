@@ -6,10 +6,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
 import { applyTheme, type Theme } from "@/lib/theme";
 import { getSettings, setTheme, setLauncherSize } from "@/services/settings";
-import { SettingsRow } from "./SettingsRow";
-import { SettingsSection } from "./SettingsSection";
 
 export function AppearancePage() {
   const queryClient = useQueryClient();
@@ -49,8 +48,12 @@ export function AppearancePage() {
 
   return (
     <div className="flex flex-col gap-2">
-      <SettingsSection>
-        <SettingsRow title="Theme" description="Select your preferred appearance">
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Theme</ItemTitle>
+          <ItemDescription>Select your preferred appearance</ItemDescription>
+        </ItemContent>
+        <ItemActions>
           <Select value={settings.theme} onValueChange={(v) => themeMutation.mutate(v)}>
             <SelectTrigger className="w-32">
               <SelectValue />
@@ -61,13 +64,14 @@ export function AppearancePage() {
               <SelectItem value="dark">Dark</SelectItem>
             </SelectContent>
           </Select>
-        </SettingsRow>
-      </SettingsSection>
-      <SettingsSection>
-        <SettingsRow
-          title="Launcher size"
-          description="Controls the size and density of the search launcher"
-        >
+        </ItemActions>
+      </Item>
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Launcher size</ItemTitle>
+          <ItemDescription>Controls the size and density of the search launcher</ItemDescription>
+        </ItemContent>
+        <ItemActions>
           <Select value={settings.launcher_size} onValueChange={(v) => sizeMutation.mutate(v)}>
             <SelectTrigger className="w-32">
               <SelectValue />
@@ -78,8 +82,8 @@ export function AppearancePage() {
               <SelectItem value="fancy">Fancy</SelectItem>
             </SelectContent>
           </Select>
-        </SettingsRow>
-      </SettingsSection>
+        </ItemActions>
+      </Item>
     </div>
   );
 }

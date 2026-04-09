@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
 import { getVersion } from "@tauri-apps/api/app";
 import { useQuery } from "@tanstack/react-query";
 import { type UpdateStatus, checkForUpdate, downloadAndInstall } from "@/services/updater";
@@ -44,43 +44,41 @@ export function AboutPage() {
 
   return (
     <div className="flex flex-col gap-2">
-      <Card className="py-0">
-        <CardContent className="p-4">
-          <div className="text-sm font-semibold">Win Spotlight</div>
-          <div className="mt-1 text-xs text-muted-foreground">Version {appVersion ?? "..."}</div>
-        </CardContent>
-      </Card>
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Win Spotlight</ItemTitle>
+          <ItemDescription>Version {appVersion ?? "..."}</ItemDescription>
+        </ItemContent>
+      </Item>
 
-      <Card className="py-0">
-        <CardContent className="flex items-center justify-between p-4">
-          <div>
-            <div className="text-sm font-semibold">Updates</div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              <StatusText status={status} />
-            </div>
-          </div>
-          <div>
-            {status.state === "available" ? (
-              <Button size="sm" onClick={handleInstall}>
-                Install v{status.version}
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleCheckForUpdate}
-                disabled={
-                  status.state === "checking" ||
-                  status.state === "downloading" ||
-                  status.state === "installing"
-                }
-              >
-                {status.state === "checking" ? "Checking..." : "Check for updates"}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Updates</ItemTitle>
+          <ItemDescription>
+            <StatusText status={status} />
+          </ItemDescription>
+        </ItemContent>
+        <ItemActions>
+          {status.state === "available" ? (
+            <Button size="sm" onClick={handleInstall}>
+              Install v{status.version}
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCheckForUpdate}
+              disabled={
+                status.state === "checking" ||
+                status.state === "downloading" ||
+                status.state === "installing"
+              }
+            >
+              {status.state === "checking" ? "Checking..." : "Check for updates"}
+            </Button>
+          )}
+        </ItemActions>
+      </Item>
     </div>
   );
 }

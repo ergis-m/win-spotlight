@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
 import {
   getOverrides,
   saveOverrides,
@@ -14,8 +15,6 @@ import {
   COMMON_CURRENCIES,
   CURRENCY_NAMES,
 } from "@/lib/locale";
-import { SettingsRow } from "./SettingsRow";
-import { SettingsSection } from "./SettingsSection";
 
 function formatTzLabel(tz: string): string {
   const offset =
@@ -46,8 +45,12 @@ export function RegionalPage() {
 
   return (
     <div className="flex flex-col gap-2">
-      <SettingsSection>
-        <SettingsRow title="Timezone" description={`System detected: ${sys.timezone}`}>
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Timezone</ItemTitle>
+          <ItemDescription>System detected: {sys.timezone}</ItemDescription>
+        </ItemContent>
+        <ItemActions>
           <Select value={timezone} onValueChange={handleTimezoneChange}>
             <SelectTrigger className="w-52">
               <SelectValue />
@@ -61,10 +64,14 @@ export function RegionalPage() {
               ))}
             </SelectContent>
           </Select>
-        </SettingsRow>
-      </SettingsSection>
-      <SettingsSection>
-        <SettingsRow title="Currency" description={`System detected: ${sys.currency}`}>
+        </ItemActions>
+      </Item>
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Currency</ItemTitle>
+          <ItemDescription>System detected: {sys.currency}</ItemDescription>
+        </ItemContent>
+        <ItemActions>
           <Select value={currency} onValueChange={handleCurrencyChange}>
             <SelectTrigger className="w-52">
               <SelectValue />
@@ -78,8 +85,8 @@ export function RegionalPage() {
               ))}
             </SelectContent>
           </Select>
-        </SettingsRow>
-      </SettingsSection>
+        </ItemActions>
+      </Item>
     </div>
   );
 }
