@@ -40,7 +40,6 @@ export function App() {
   const { data: results = [] } = useQuery({
     queryKey: ["search", query, tab],
     queryFn: () => searchItems(query, tab),
-    placeholderData: keepPreviousData,
   });
 
   const syncAnswers = useMemo(() => getInstantAnswer(query), [query]);
@@ -49,7 +48,6 @@ export function App() {
     queryKey: ["instant-answer-async", query],
     queryFn: () => getAsyncInstantAnswer(query),
     enabled: !syncAnswers && query.trim().length > 0,
-    placeholderData: keepPreviousData,
   });
 
   const instantAnswers = syncAnswers ?? asyncAnswers ?? [];

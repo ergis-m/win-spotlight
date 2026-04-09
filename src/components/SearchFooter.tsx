@@ -44,8 +44,8 @@ export function SearchFooter() {
       </div>
       <div className="ml-auto flex items-center gap-0.5">
         <Button
-          variant="ghost"
-          size="icon-xs"
+          variant={pinned ? "outline" : "ghost"}
+          size="icon-sm"
           title={pinned ? "Unpin (disable drag)" : "Pin (enable drag)"}
           onClick={handleTogglePin}
         >
@@ -57,7 +57,7 @@ export function SearchFooter() {
         </Button>
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
           title="Settings"
           onClick={() => invoke("open_settings")}
         >
