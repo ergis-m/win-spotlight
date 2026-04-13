@@ -35,6 +35,13 @@ pub fn activate_item(
             .creation_flags(0x08000000)
             .spawn()
             .map_err(|e| e.to_string())?;
+    } else if let Some(rest) = id.strip_prefix("tab:") {
+        // Format: "hwnd:tab_title" — split on first ':' only.
+        if let Some(colon) = rest.find(':') {
+            let hwnd: isize = rest[..colon].parse().map_err(|_| "Invalid window handle")?;
+            let tab_title = &rest[colon + 1..];
+            crate::browser_tabs::switch_to_tab(hwnd, tab_title);
+        }
     } else if let Some(hwnd_str) = id.strip_prefix("window:") {
         let hwnd: isize = hwnd_str.parse().map_err(|_| "Invalid window handle")?;
         running::switch_to(hwnd);

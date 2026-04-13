@@ -2,6 +2,7 @@ use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use serde::Serialize;
 
+use crate::browser_tabs;
 use crate::file_indexer::FileIndex;
 use crate::file_search;
 use crate::icons;
@@ -35,8 +36,17 @@ pub fn query(
     let include_files = file_search_enabled && (mode == "all" || mode == "files");
     let include_media = file_search_enabled && mode == "media";
 
+    // Enumerate browser tabs once — used for both tab count on windows and
+    // individual tab search results.
+    let tabs = if include_apps {
+        browser_tabs::get_browser_tabs(&windows)
+    } else {
+        Vec::new()
+    };
+    let tab_counts = tab_count_map(&tabs);
+
     if query.is_empty() && include_apps {
-        return default_results(index, tracker, &windows, limit);
+        return default_results(index, tracker, &windows, &tab_counts, limit);
     }
 
     if query.is_empty() {
@@ -77,7 +87,20 @@ pub fn query(
                 if score + prefix < min_score {
                     continue;
                 }
-                scored.push((score + prefix + 10, window_result(win)));
+                let tc = tab_counts.get(&win.hwnd).copied().unwrap_or(0);
+                scored.push((score + prefix + 10, window_result(win, tc)));
+            }
+        }
+
+        // Score individual browser tabs.
+        for tab in &tabs {
+            if let Some(score) = matcher.fuzzy_match(&tab.title, query) {
+                let prefix = prefix_bonus(&tab.title, &query_lower);
+                let min_score = query.len() as i64 * 15;
+                if score + prefix < min_score {
+                    continue;
+                }
+                scored.push((score + prefix + 5, tab_result(tab)));
             }
         }
 
@@ -110,12 +133,13 @@ fn default_results(
     index: &AppIndex,
     tracker: &UsageTracker,
     windows: &[running::RunningWindow],
+    tab_counts: &std::collections::HashMap<isize, usize>,
     limit: usize,
 ) -> Vec<SearchResult> {
     let mut results: Vec<SearchResult> = windows
         .iter()
         .take(limit)
-        .map(window_result)
+        .map(|w| window_result(w, tab_counts.get(&w.hwnd).copied().unwrap_or(0)))
         .collect();
 
     let remaining = limit.saturating_sub(results.len());
@@ -150,16 +174,30 @@ fn default_results(
     results
 }
 
-fn window_result(win: &running::RunningWindow) -> SearchResult {
+fn tab_count_map(tabs: &[browser_tabs::BrowserTab]) -> std::collections::HashMap<isize, usize> {
+    let mut counts = std::collections::HashMap::new();
+    for tab in tabs {
+        *counts.entry(tab.window_hwnd).or_insert(0) += 1;
+    }
+    counts
+}
+
+fn window_result(win: &running::RunningWindow, tab_count: usize) -> SearchResult {
     let exe_name = std::path::Path::new(&win.exe_path)
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("App");
 
+    let subtitle = if tab_count > 1 {
+        format!("Running · {} · {} tabs", exe_name, tab_count)
+    } else {
+        format!("Running · {}", exe_name)
+    };
+
     SearchResult {
         id: format!("window:{}", win.hwnd),
         title: win.title.clone(),
-        subtitle: format!("Running · {}", exe_name),
+        subtitle,
         icon: icons::extract_window_icon(win.hwnd, &win.exe_path).unwrap_or_default(),
         kind: "window".into(),
     }
@@ -209,6 +247,21 @@ fn url_result(query: &str) -> Option<SearchResult> {
         icon: String::new(),
         kind: "url".into(),
     })
+}
+
+fn tab_result(tab: &browser_tabs::BrowserTab) -> SearchResult {
+    let exe_name = std::path::Path::new(&tab.exe_path)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("Browser");
+
+    SearchResult {
+        id: format!("tab:{}:{}", tab.window_hwnd, tab.title),
+        title: tab.title.clone(),
+        subtitle: format!("Tab · {}", exe_name),
+        icon: icons::extract_icon_data_uri(&tab.exe_path).unwrap_or_default(),
+        kind: "tab".into(),
+    }
 }
 
 fn app_result(e: &crate::indexer::AppEntry) -> SearchResult {

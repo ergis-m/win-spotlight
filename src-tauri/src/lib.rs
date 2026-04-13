@@ -1,3 +1,4 @@
+mod browser_tabs;
 mod commands;
 mod file_indexer;
 mod file_search;

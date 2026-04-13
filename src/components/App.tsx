@@ -107,9 +107,12 @@ export function App() {
   );
 
   const running = results.filter((r) => r.kind === "window");
+  const tabs = results.filter((r) => r.kind === "tab");
   const files = results.filter((r) => r.kind === "file");
   const urls = results.filter((r) => r.kind === "url");
-  const apps = results.filter((r) => r.kind !== "window" && r.kind !== "file" && r.kind !== "url");
+  const apps = results.filter(
+    (r) => r.kind !== "window" && r.kind !== "tab" && r.kind !== "file" && r.kind !== "url",
+  );
 
   const showInstantAnswers = tab === "all" && instantAnswers.length > 0;
   const showHints = tab === "all" && hints.length > 0 && !showInstantAnswers;
@@ -211,6 +214,18 @@ export function App() {
                         item={item}
                         onSelect={handleSelect}
                         showBadge="Running"
+                      />
+                    ))}
+                  </CommandGroup>
+                )}
+                {tabs.length > 0 && (
+                  <CommandGroup heading="Tabs">
+                    {tabs.map((item) => (
+                      <ResultItem
+                        key={item.id}
+                        item={item}
+                        onSelect={handleSelect}
+                        showBadge="Tab"
                       />
                     ))}
                   </CommandGroup>
