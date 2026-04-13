@@ -8,6 +8,7 @@ mod network;
 mod running;
 mod search;
 mod settings;
+mod steam;
 mod usage;
 mod window;
 
@@ -66,6 +67,7 @@ pub fn run() {
             app.manage(index);
             app.manage(usage::UsageTracker::new());
             app.manage(window::PinState::new());
+            app.manage(steam::SteamIndex::new());
 
             // Start background file indexing.
             let file_index = Arc::new(file_indexer::FileIndex::new());

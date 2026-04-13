@@ -8,6 +8,7 @@ use crate::file_search;
 use crate::icons;
 use crate::indexer::AppIndex;
 use crate::running;
+use crate::steam::SteamIndex;
 use crate::settings::SettingsManager;
 use crate::usage::UsageTracker;
 
@@ -24,6 +25,7 @@ pub struct SearchResult {
 pub fn query(
     index: &AppIndex,
     file_index: &FileIndex,
+    steam_index: &SteamIndex,
     tracker: &UsageTracker,
     settings_mgr: &SettingsManager,
     query: &str,
@@ -46,7 +48,7 @@ pub fn query(
     let tab_counts = tab_count_map(&tabs);
 
     if query.is_empty() && include_apps {
-        return default_results(index, tracker, &windows, &tab_counts, limit);
+        return default_results(index, tracker, &windows, &tabs, &tab_counts, limit);
     }
 
     if query.is_empty() {
@@ -63,10 +65,21 @@ pub fn query(
 
     let query_lower = query.to_lowercase();
 
+    // Running windows and tabs get a boost so they rank above static files
+    // at similar match quality — the user is more likely switching to an
+    // already-open item than opening a file.
+    const RUNNING_BOOST: i64 = 80;
+
     if include_apps {
-        // Score running windows: match against both title and exe name,
-        // apply prefix bonus on exe name, and add a small tiebreaker (+10).
         for win in &windows {
+            // Skip browser windows when we have their individual tabs —
+            // the tabs are more useful and the window just duplicates the
+            // active tab.
+            let tc = tab_counts.get(&win.hwnd).copied().unwrap_or(0);
+            if tc > 0 {
+                continue;
+            }
+
             let exe_name = std::path::Path::new(&win.exe_path)
                 .file_stem()
                 .and_then(|s| s.to_str())
@@ -80,15 +93,11 @@ pub fn query(
             };
             if let Some(score) = best {
                 let prefix = prefix_bonus(exe_name, &query_lower);
-                // Skip weak fuzzy matches — long window titles produce false
-                // positives from scattered character hits.  Require the raw
-                // score to clear a per-character bar before we include it.
                 let min_score = query.len() as i64 * 15;
                 if score + prefix < min_score {
                     continue;
                 }
-                let tc = tab_counts.get(&win.hwnd).copied().unwrap_or(0);
-                scored.push((score + prefix + 10, window_result(win, tc)));
+                scored.push((score + prefix + RUNNING_BOOST, window_result(win, 0)));
             }
         }
 
@@ -100,7 +109,7 @@ pub fn query(
                 if score + prefix < min_score {
                     continue;
                 }
-                scored.push((score + prefix + 5, tab_result(tab)));
+                scored.push((score + prefix + RUNNING_BOOST, tab_result(tab)));
             }
         }
 
@@ -111,6 +120,15 @@ pub fn query(
                 let usage_boost = (tracker.get_count(&entry.id) as i64).min(50) * 2;
                 let prefix_boost = prefix_bonus(&entry.name, &query_lower);
                 scored.push((score + usage_boost + prefix_boost, app_result(entry)));
+            }
+        }
+
+        // Score installed Steam games.
+        let games = steam_index.games.lock().unwrap();
+        for game in games.iter() {
+            if let Some(score) = matcher.fuzzy_match(&game.name, query) {
+                let prefix = prefix_bonus(&game.name, &query_lower);
+                scored.push((score + prefix, game_result(game)));
             }
         }
     }
@@ -129,18 +147,32 @@ pub fn query(
 }
 
 /// Empty-query view: running windows first, then most-used apps.
+/// Browser windows with tabs are replaced by their individual tabs.
 fn default_results(
     index: &AppIndex,
     tracker: &UsageTracker,
     windows: &[running::RunningWindow],
+    tabs: &[browser_tabs::BrowserTab],
     tab_counts: &std::collections::HashMap<isize, usize>,
     limit: usize,
 ) -> Vec<SearchResult> {
-    let mut results: Vec<SearchResult> = windows
-        .iter()
-        .take(limit)
-        .map(|w| window_result(w, tab_counts.get(&w.hwnd).copied().unwrap_or(0)))
-        .collect();
+    let mut results: Vec<SearchResult> = Vec::new();
+    for win in windows {
+        if results.len() >= limit {
+            break;
+        }
+        if tab_counts.get(&win.hwnd).copied().unwrap_or(0) > 0 {
+            // Replace the browser window with its individual tabs.
+            for tab in tabs.iter().filter(|t| t.window_hwnd == win.hwnd) {
+                if results.len() >= limit {
+                    break;
+                }
+                results.push(tab_result(tab));
+            }
+        } else {
+            results.push(window_result(win, 0));
+        }
+    }
 
     let remaining = limit.saturating_sub(results.len());
     if remaining > 0 {
@@ -261,6 +293,16 @@ fn tab_result(tab: &browser_tabs::BrowserTab) -> SearchResult {
         subtitle: format!("Tab · {}", exe_name),
         icon: icons::extract_icon_data_uri(&tab.exe_path).unwrap_or_default(),
         kind: "tab".into(),
+    }
+}
+
+fn game_result(game: &crate::steam::SteamGame) -> SearchResult {
+    SearchResult {
+        id: format!("steam:{}", game.app_id),
+        title: game.name.clone(),
+        subtitle: "Steam Game".into(),
+        icon: game.icon_data.clone(),
+        kind: "game".into(),
     }
 }
 

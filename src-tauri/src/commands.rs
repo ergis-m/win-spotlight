@@ -6,6 +6,7 @@ use crate::indexer::AppIndex;
 use crate::running;
 use crate::search;
 use crate::settings::SettingsManager;
+use crate::steam::SteamIndex;
 use crate::usage::UsageTracker;
 use tauri::{AppHandle, Manager, State};
 
@@ -15,10 +16,11 @@ pub fn search(
     mode: String,
     index: State<'_, Arc<AppIndex>>,
     file_index: State<'_, Arc<FileIndex>>,
+    steam_index: State<'_, SteamIndex>,
     tracker: State<'_, UsageTracker>,
     settings_mgr: State<'_, SettingsManager>,
 ) -> Vec<search::SearchResult> {
-    search::query(&index, &file_index, &tracker, &settings_mgr, &query, &mode, 10)
+    search::query(&index, &file_index, &steam_index, &tracker, &settings_mgr, &query, &mode, 10)
 }
 
 /// Activate a search result — either switch to a running window or launch an app.
@@ -45,6 +47,13 @@ pub fn activate_item(
     } else if let Some(hwnd_str) = id.strip_prefix("window:") {
         let hwnd: isize = hwnd_str.parse().map_err(|_| "Invalid window handle")?;
         running::switch_to(hwnd);
+    } else if let Some(app_id) = id.strip_prefix("steam:") {
+        let uri = format!("steam://rungameid/{}", app_id);
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "", &uri])
+            .creation_flags(0x08000000)
+            .spawn()
+            .map_err(|e| e.to_string())?;
     } else if let Some(file_path) = id.strip_prefix("file:") {
         tracker.record(&id);
         std::process::Command::new("cmd")

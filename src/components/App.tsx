@@ -106,17 +106,8 @@ export function App() {
     [queryClient],
   );
 
-  const running = results.filter((r) => r.kind === "window");
-  const tabs = results.filter((r) => r.kind === "tab");
-  const files = results.filter((r) => r.kind === "file");
-  const urls = results.filter((r) => r.kind === "url");
-  const apps = results.filter(
-    (r) => r.kind !== "window" && r.kind !== "tab" && r.kind !== "file" && r.kind !== "url",
-  );
-
   const showInstantAnswers = tab === "all" && instantAnswers.length > 0;
   const showHints = tab === "all" && hints.length > 0 && !showInstantAnswers;
-  const showGrouped = tab === "all" || tab === "apps";
 
   return (
     <Onboarding>
@@ -204,61 +195,24 @@ export function App() {
                 ))}
               </CommandGroup>
             )}
-            {showGrouped ? (
-              <>
-                {running.length > 0 && (
-                  <CommandGroup heading="Running">
-                    {running.map((item) => (
-                      <ResultItem
-                        key={item.id}
-                        item={item}
-                        onSelect={handleSelect}
-                        showBadge="Running"
-                      />
-                    ))}
-                  </CommandGroup>
-                )}
-                {tabs.length > 0 && (
-                  <CommandGroup heading="Tabs">
-                    {tabs.map((item) => (
-                      <ResultItem
-                        key={item.id}
-                        item={item}
-                        onSelect={handleSelect}
-                        showBadge="Tab"
-                      />
-                    ))}
-                  </CommandGroup>
-                )}
-                {urls.length > 0 && (
-                  <CommandGroup heading="Web">
-                    {urls.map((item) => (
-                      <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-                    ))}
-                  </CommandGroup>
-                )}
-                {apps.length > 0 && (
-                  <CommandGroup heading="Applications">
-                    {apps.map((item) => (
-                      <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-                    ))}
-                  </CommandGroup>
-                )}
-                {files.length > 0 && (
-                  <CommandGroup heading="Files">
-                    {files.map((item) => (
-                      <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-                    ))}
-                  </CommandGroup>
-                )}
-              </>
-            ) : (
-              <CommandGroup>
-                {results.map((item) => (
-                  <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-                ))}
-              </CommandGroup>
-            )}
+            <CommandGroup>
+              {results.map((item) => (
+                <ResultItem
+                  key={item.id}
+                  item={item}
+                  onSelect={handleSelect}
+                  showBadge={
+                    item.kind === "window"
+                      ? "Running"
+                      : item.kind === "tab"
+                        ? "Tab"
+                        : item.kind === "game"
+                          ? "Game"
+                          : undefined
+                  }
+                />
+              ))}
+            </CommandGroup>
           </CommandList>
           <SearchFooter />
         </Command>
