@@ -1,6 +1,6 @@
 [package]
 name = "win-spotlight"
-version = "0.2.17"
+version = "0.3.0"
 edition = "2021"
 description = "A Raycast-style launcher for Windows"
 
