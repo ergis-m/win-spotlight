@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useCallback, useRef, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Command,
@@ -7,7 +7,7 @@ import {
   CommandEmpty,
   CommandGroup,
 } from "@/components/ui/command";
-import { searchItems, activateItem, hideWindow, type SearchMode } from "@/services/search";
+import { searchItems, activateItem, hideWindow } from "@/services/search";
 import {
   getInstantAnswer,
   getAsyncInstantAnswer,
@@ -19,18 +19,21 @@ import { InstantAnswerGroup } from "./InstantAnswerGroup";
 import { HintGroup } from "./HintGroup";
 import { ResultItem } from "./ResultItem";
 import { SearchFooter } from "./SearchFooter";
-
-const TABS: { key: SearchMode; label: string; placeholder: string }[] = [
-  { key: "all", label: "All", placeholder: "Search apps, files..." },
-  { key: "apps", label: "Apps", placeholder: "Search apps..." },
-  { key: "files", label: "Files", placeholder: "Search files..." },
-  { key: "media", label: "Media", placeholder: "Search media..." },
-];
+import {
+  useLauncherStore,
+  TABS,
+  setQuery,
+  setTab,
+  cycleTab,
+  setSelectedValue,
+  resetLauncher,
+} from "@/stores/launcher";
 
 export function App() {
-  const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<SearchMode>("all");
-  const [selectedValue, setSelectedValue] = useState("");
+  const query = useLauncherStore((s) => s.query);
+  const tab = useLauncherStore((s) => s.tab);
+  const selectedValue = useLauncherStore((s) => s.selectedValue);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -68,8 +71,7 @@ export function App() {
   }, []);
 
   const handleWindowFocus = useCallback(() => {
-    setQuery("");
-    setTab("all");
+    resetLauncher();
     queryClient.invalidateQueries({ queryKey: ["search"] });
     inputRef.current?.focus();
     loadAndApplySettings();
@@ -117,19 +119,12 @@ export function App() {
         onValueChange={setSelectedValue}
         onKeyDown={(e) => {
           if (e.key === "Escape") {
-            setQuery("");
-            setTab("all");
+            resetLauncher();
             hideWindow();
           }
           if (e.key === "Tab") {
             e.preventDefault();
-            setTab((prev) => {
-              const idx = TABS.findIndex((t) => t.key === prev);
-              const next = e.shiftKey
-                ? (idx - 1 + TABS.length) % TABS.length
-                : (idx + 1) % TABS.length;
-              return TABS[next].key;
-            });
+            cycleTab(e.shiftKey);
           }
         }}
       >
@@ -140,7 +135,6 @@ export function App() {
           value={query}
           onValueChange={(v) => {
             setQuery(v);
-            setSelectedValue("");
             listRef.current?.scrollTo(0, 0);
           }}
         >

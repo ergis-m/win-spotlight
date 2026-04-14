@@ -15,7 +15,8 @@
       "Bash(node -e ':*)",
       "Skill(shadcn)",
       "Bash(cargo build:*)",
-      "Bash(cargo test:*)"
+      "Bash(cargo test:*)",
+      "Bash(pnpm lint:*)"
     ]
   }
 }
