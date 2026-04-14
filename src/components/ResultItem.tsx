@@ -3,13 +3,19 @@ import { Badge } from "@/components/ui/badge";
 import { ResultIcon } from "./ResultIcon";
 import type { SearchResult } from "@/services/search";
 
+const BADGE_BY_KIND: Partial<Record<SearchResult["kind"], string>> = {
+  window: "Running",
+  tab: "Tab",
+  game: "Game",
+};
+
 interface ResultItemProps {
   item: SearchResult;
   onSelect: (id: string) => void;
-  showBadge?: string;
 }
 
-export function ResultItem({ item, onSelect, showBadge }: ResultItemProps) {
+export function ResultItem({ item, onSelect }: ResultItemProps) {
+  const badge = BADGE_BY_KIND[item.kind];
   return (
     <CommandItem
       key={item.id}
@@ -25,12 +31,12 @@ export function ResultItem({ item, onSelect, showBadge }: ResultItemProps) {
             {item.subtitle}
           </span>
         </div>
-        {showBadge && (
+        {badge && (
           <Badge
             variant="secondary"
             className="ml-auto h-auto shrink-0 rounded-sm bg-success/15 px-1.5 py-0 text-[10px] font-medium text-success"
           >
-            {showBadge}
+            {badge}
           </Badge>
         )}
       </div>

@@ -20,11 +20,11 @@ import { HintGroup } from "./HintGroup";
 import { ResultItem } from "./ResultItem";
 import { SearchFooter } from "./SearchFooter";
 
-const TABS: { key: SearchMode; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "apps", label: "Apps" },
-  { key: "files", label: "Files" },
-  { key: "media", label: "Media" },
+const TABS: { key: SearchMode; label: string; placeholder: string }[] = [
+  { key: "all", label: "All", placeholder: "Search apps, files..." },
+  { key: "apps", label: "Apps", placeholder: "Search apps..." },
+  { key: "files", label: "Files", placeholder: "Search files..." },
+  { key: "media", label: "Media", placeholder: "Search media..." },
 ];
 
 export function App() {
@@ -59,6 +59,8 @@ export function App() {
     () => (instantAnswers.length === 0 ? getInstantAnswerHints(query) : []),
     [query, instantAnswers.length],
   );
+
+  const placeholder = useMemo(() => TABS.find((t) => t.key === tab)?.placeholder, [tab]);
 
   const fillHint = useCallback((example: string) => {
     setQuery(example);
@@ -133,15 +135,7 @@ export function App() {
       >
         <CommandInput
           ref={inputRef}
-          placeholder={
-            tab === "all"
-              ? "Search apps, files..."
-              : tab === "apps"
-                ? "Search apps..."
-                : tab === "files"
-                  ? "Search files..."
-                  : "Search media..."
-          }
+          placeholder={placeholder}
           className="text-xs"
           value={query}
           onValueChange={(v) => {
@@ -176,20 +170,7 @@ export function App() {
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup>
             {results.map((item) => (
-              <ResultItem
-                key={item.id}
-                item={item}
-                onSelect={handleSelect}
-                showBadge={
-                  item.kind === "window"
-                    ? "Running"
-                    : item.kind === "tab"
-                      ? "Tab"
-                      : item.kind === "game"
-                        ? "Game"
-                        : undefined
-                }
-              />
+              <ResultItem key={item.id} item={item} onSelect={handleSelect} />
             ))}
           </CommandGroup>
         </CommandList>
