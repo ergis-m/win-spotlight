@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
@@ -28,5 +29,9 @@ export default defineConfig({
         settings: resolve(__dirname, "settings.html"),
       },
     },
+  },
+  test: {
+    environment: "node",
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
   },
 });

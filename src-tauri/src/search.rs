@@ -69,6 +69,10 @@ pub fn query(
     // at similar match quality — the user is more likely switching to an
     // already-open item than opening a file.
     const RUNNING_BOOST: i64 = 80;
+    // Apps outrank loose file hits at similar match quality — files can
+    // stack recency + extension boosts that would otherwise bury named apps
+    // (e.g. "file" → "Files.tsx" beating "File Explorer").
+    const APP_BOOST: i64 = 60;
 
     if include_apps {
         for win in &windows {
@@ -119,7 +123,10 @@ pub fn query(
             if let Some(score) = matcher.fuzzy_match(&entry.name, query) {
                 let usage_boost = (tracker.get_count(&entry.id) as i64).min(50) * 2;
                 let prefix_boost = prefix_bonus(&entry.name, &query_lower);
-                scored.push((score + usage_boost + prefix_boost, app_result(entry)));
+                scored.push((
+                    score + usage_boost + prefix_boost + APP_BOOST,
+                    app_result(entry),
+                ));
             }
         }
 
@@ -128,7 +135,7 @@ pub fn query(
         for game in games.iter() {
             if let Some(score) = matcher.fuzzy_match(&game.name, query) {
                 let prefix = prefix_bonus(&game.name, &query_lower);
-                scored.push((score + prefix, game_result(game)));
+                scored.push((score + prefix + APP_BOOST, game_result(game)));
             }
         }
     }
