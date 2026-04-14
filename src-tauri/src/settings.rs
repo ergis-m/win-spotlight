@@ -20,8 +20,6 @@ pub struct Settings {
     pub launcher_size: LauncherSize,
     #[serde(default)]
     pub file_search: FileSearchSettings,
-    #[serde(default)]
-    pub onboarding_completed: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -84,7 +82,6 @@ impl Default for Settings {
             theme: Theme::default(),
             launcher_size: LauncherSize::default(),
             file_search: FileSearchSettings::default(),
-            onboarding_completed: false,
         }
     }
 }

@@ -230,23 +230,6 @@ pub fn get_file_index_status(
 }
 
 #[tauri::command]
-pub fn is_onboarding_completed(manager: State<'_, SettingsManager>) -> bool {
-    manager.inner.lock().unwrap().onboarding_completed
-}
-
-#[tauri::command]
-pub fn complete_onboarding(manager: State<'_, SettingsManager>) {
-    manager.inner.lock().unwrap().onboarding_completed = true;
-    manager.save();
-}
-
-#[tauri::command]
-pub fn reset_onboarding(manager: State<'_, SettingsManager>) {
-    manager.inner.lock().unwrap().onboarding_completed = false;
-    manager.save();
-}
-
-#[tauri::command]
 pub fn get_file_thumbnail(path: String) -> Option<String> {
     crate::icons::extract_file_thumbnail(&path, 64)
 }

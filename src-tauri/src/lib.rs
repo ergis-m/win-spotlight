@@ -170,9 +170,6 @@ pub fn run() {
             commands::get_network_info,
             commands::is_pinned,
             commands::toggle_pin,
-            commands::is_onboarding_completed,
-            commands::complete_onboarding,
-            commands::reset_onboarding,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

@@ -14,13 +14,11 @@ import {
   getInstantAnswerHints,
 } from "@/lib/instant-answer";
 import { loadAndApplySettings } from "@/lib/theme";
-import { matchCommands } from "@/lib/commands";
 import { invoke } from "@tauri-apps/api/core";
 import { InstantAnswerGroup } from "./InstantAnswerGroup";
 import { HintGroup } from "./HintGroup";
 import { ResultItem } from "./ResultItem";
 import { SearchFooter } from "./SearchFooter";
-import { Onboarding } from "./Onboarding";
 
 const TABS: { key: SearchMode; label: string }[] = [
   { key: "all", label: "All" },
@@ -57,8 +55,6 @@ export function App() {
     queryFn: () => invoke<boolean>("is_pinned"),
   });
 
-  const commands = useMemo(() => matchCommands(query), [query]);
-
   const hints = useMemo(
     () => (instantAnswers.length === 0 ? getInstantAnswerHints(query) : []),
     [query, instantAnswers.length],
@@ -92,131 +88,113 @@ export function App() {
     [handleWindowFocus],
   );
 
-  const handleSelect = useCallback(
-    (id: string) => {
-      if (id === "cmd:onboarding") {
-        invoke("reset_onboarding").catch(() => {});
-        queryClient.setQueryData(["onboarding"], false);
-        setQuery("");
-        return;
-      }
-      activateItem(id);
-      setQuery("");
-    },
-    [queryClient],
-  );
+  const handleSelect = useCallback((id: string) => {
+    activateItem(id);
+    setQuery("");
+  }, []);
 
   const showInstantAnswers = tab === "all" && instantAnswers.length > 0;
   const showHints = tab === "all" && hints.length > 0 && !showInstantAnswers;
 
   return (
-    <Onboarding>
-      <div className="relative flex size-full flex-col">
-        {pinned && (
-          <div
-            data-tauri-drag-region
-            className="relative flex h-4 cursor-grab items-center justify-center bg-background/20 hover:bg-background/30"
-          >
-            <div data-tauri-drag-region className="h-0.5 w-8 rounded-full bg-muted-foreground/40" />
-          </div>
-        )}
-        <Command
-          ref={commandRef}
-          className="rounded-none! bg-background/20 text-foreground p-1"
-          shouldFilter={false}
-          loop
-          value={selectedValue}
-          onValueChange={setSelectedValue}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setQuery("");
-              setTab("all");
-              hideWindow();
-            }
-            if (e.key === "Tab") {
-              e.preventDefault();
-              setTab((prev) => {
-                const idx = TABS.findIndex((t) => t.key === prev);
-                const next = e.shiftKey
-                  ? (idx - 1 + TABS.length) % TABS.length
-                  : (idx + 1) % TABS.length;
-                return TABS[next].key;
-              });
-            }
+    <div className="relative flex size-full flex-col">
+      {pinned && (
+        <div
+          data-tauri-drag-region
+          className="relative flex h-4 cursor-grab items-center justify-center bg-background/20 hover:bg-background/30"
+        >
+          <div data-tauri-drag-region className="h-0.5 w-8 rounded-full bg-muted-foreground/40" />
+        </div>
+      )}
+      <Command
+        ref={commandRef}
+        className="rounded-none! bg-background/20 text-foreground p-1"
+        shouldFilter={false}
+        loop
+        value={selectedValue}
+        onValueChange={setSelectedValue}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            setQuery("");
+            setTab("all");
+            hideWindow();
+          }
+          if (e.key === "Tab") {
+            e.preventDefault();
+            setTab((prev) => {
+              const idx = TABS.findIndex((t) => t.key === prev);
+              const next = e.shiftKey
+                ? (idx - 1 + TABS.length) % TABS.length
+                : (idx + 1) % TABS.length;
+              return TABS[next].key;
+            });
+          }
+        }}
+      >
+        <CommandInput
+          ref={inputRef}
+          placeholder={
+            tab === "all"
+              ? "Search apps, files..."
+              : tab === "apps"
+                ? "Search apps..."
+                : tab === "files"
+                  ? "Search files..."
+                  : "Search media..."
+          }
+          className="text-xs"
+          value={query}
+          onValueChange={(v) => {
+            setQuery(v);
+            setSelectedValue("");
+            listRef.current?.scrollTo(0, 0);
           }}
         >
-          <CommandInput
-            ref={inputRef}
-            placeholder={
-              tab === "all"
-                ? "Search apps, files..."
-                : tab === "apps"
-                  ? "Search apps..."
-                  : tab === "files"
-                    ? "Search files..."
-                    : "Search media..."
-            }
-            className="text-xs"
-            value={query}
-            onValueChange={(v) => {
-              setQuery(v);
-              setSelectedValue("");
-              listRef.current?.scrollTo(0, 0);
-            }}
-          >
-            <div className="flex items-center gap-0.5">
-              {TABS.map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition-colors ${
-                    tab === t.key
-                      ? "bg-muted text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={() => {
-                    setTab(t.key);
-                    inputRef.current?.focus();
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </CommandInput>
-          <CommandList ref={listRef} className="max-h-none flex-1 scrollbar-thin p-0!">
-            {showInstantAnswers && <InstantAnswerGroup answers={instantAnswers} />}
-            {showHints && <HintGroup hints={hints} onSelect={fillHint} />}
-            <CommandEmpty>No results found.</CommandEmpty>
-            {commands.length > 0 && (
-              <CommandGroup heading="Commands">
-                {commands.map((item) => (
-                  <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-                ))}
-              </CommandGroup>
-            )}
-            <CommandGroup>
-              {results.map((item) => (
-                <ResultItem
-                  key={item.id}
-                  item={item}
-                  onSelect={handleSelect}
-                  showBadge={
-                    item.kind === "window"
-                      ? "Running"
-                      : item.kind === "tab"
-                        ? "Tab"
-                        : item.kind === "game"
-                          ? "Game"
-                          : undefined
-                  }
-                />
-              ))}
-            </CommandGroup>
-          </CommandList>
-          <SearchFooter />
-        </Command>
-      </div>
-    </Onboarding>
+          <div className="flex items-center gap-0.5">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition-colors ${
+                  tab === t.key
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() => {
+                  setTab(t.key);
+                  inputRef.current?.focus();
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </CommandInput>
+        <CommandList ref={listRef} className="max-h-none flex-1 scrollbar-thin p-0!">
+          {showInstantAnswers && <InstantAnswerGroup answers={instantAnswers} />}
+          {showHints && <HintGroup hints={hints} onSelect={fillHint} />}
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup>
+            {results.map((item) => (
+              <ResultItem
+                key={item.id}
+                item={item}
+                onSelect={handleSelect}
+                showBadge={
+                  item.kind === "window"
+                    ? "Running"
+                    : item.kind === "tab"
+                      ? "Tab"
+                      : item.kind === "game"
+                        ? "Game"
+                        : undefined
+                }
+              />
+            ))}
+          </CommandGroup>
+        </CommandList>
+        <SearchFooter />
+      </Command>
+    </div>
   );
 }
