@@ -1,9 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Settings01Icon, PinIcon, PinOffIcon } from "@hugeicons/core-free-icons";
+import { Settings01Icon, PinIcon, PinOffIcon, Download01Icon } from "@hugeicons/core-free-icons";
 import { invoke } from "@tauri-apps/api/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type Update } from "@tauri-apps/plugin-updater";
+import { checkForUpdate } from "@/services/updater";
+
+const ONE_HOUR_MS = 60 * 60 * 1000;
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 function Hint({ keys, label }: { keys: React.ReactNode; label: string }) {
   return (
@@ -11,6 +16,35 @@ function Hint({ keys, label }: { keys: React.ReactNode; label: string }) {
       {keys}
       <span>{label}</span>
     </span>
+  );
+}
+
+function UpdateBadge() {
+  const { data: update } = useQuery<Update | null>({
+    queryKey: ["update-check"],
+    queryFn: async () => {
+      if (import.meta.env.DEV) {
+        return { version: "dev" } as Update;
+      }
+      return await checkForUpdate();
+    },
+    staleTime: FIVE_MINUTES_MS,
+    refetchInterval: ONE_HOUR_MS,
+  });
+
+  if (!update) return null;
+
+  return (
+    <Button
+      size="xs"
+      variant="outline"
+      onClick={() => invoke("open_settings")}
+      title={`Version ${update.version} available — open Settings to install`}
+      className="text-info"
+    >
+      <HugeiconsIcon icon={Download01Icon} strokeWidth={2} />
+      Update available
+    </Button>
   );
 }
 
@@ -42,7 +76,8 @@ export function SearchFooter() {
         <Hint keys={<Kbd>↵</Kbd>} label="open" />
         <Hint keys={<Kbd>esc</Kbd>} label="dismiss" />
       </div>
-      <div className="ml-auto flex items-center gap-0.5">
+      <div className="ml-auto flex items-center gap-1.5">
+        <UpdateBadge />
         <Button
           variant={pinned ? "outline" : "ghost"}
           size="icon-sm"
