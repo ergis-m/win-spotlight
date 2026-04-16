@@ -6,7 +6,6 @@ import type { SearchResult } from "@/services/search";
 const BADGE_BY_KIND: Partial<Record<SearchResult["kind"], string>> = {
   window: "Running",
   tab: "Tab",
-  game: "Game",
 };
 
 interface ResultItemProps {
@@ -25,11 +24,9 @@ export function ResultItem({ item, onSelect }: ResultItemProps) {
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <ResultIcon item={item} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm font-medium leading-tight">{item.title}</span>
-          <span className="truncate text-xs leading-tight text-muted-foreground">
-            {item.subtitle}
-          </span>
+        <div className="min-w-0 flex-1 gap-2 flex-row flex items-start">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">{item.title}</span>
+          <span className="text-xs text-foreground/50 font-light">{item.subtitle}</span>
         </div>
         {badge && (
           <Badge

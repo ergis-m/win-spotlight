@@ -120,7 +120,7 @@ pub fn query(
         // Score indexed apps (boost by usage and prefix match).
         let entries = index.entries.lock().unwrap();
         for entry in entries.iter() {
-            if let Some(score) = matcher.fuzzy_match(&entry.name, query) {
+            if let Some(score) = best_match(&matcher, &entry.name, query) {
                 let usage_boost = (tracker.get_count(&entry.id) as i64).min(50) * 2;
                 let prefix_boost = prefix_bonus(&entry.name, &query_lower);
                 scored.push((
@@ -133,7 +133,7 @@ pub fn query(
         // Score installed Steam games.
         let games = steam_index.games.lock().unwrap();
         for game in games.iter() {
-            if let Some(score) = matcher.fuzzy_match(&game.name, query) {
+            if let Some(score) = best_match(&matcher, &game.name, query) {
                 let prefix = prefix_bonus(&game.name, &query_lower);
                 scored.push((score + prefix + APP_BOOST, game_result(game)));
             }
@@ -230,7 +230,7 @@ fn window_result(win: &running::RunningWindow, tab_count: usize) -> SearchResult
     let subtitle = if tab_count > 1 {
         format!("Running · {} · {} tabs", exe_name, tab_count)
     } else {
-        format!("Running · {}", exe_name)
+        format!("{}", exe_name)
     };
 
     SearchResult {
@@ -239,6 +239,22 @@ fn window_result(win: &running::RunningWindow, tab_count: usize) -> SearchResult
         subtitle,
         icon: icons::extract_window_icon(win.hwnd, &win.exe_path).unwrap_or_default(),
         kind: "window".into(),
+    }
+}
+
+/// Fuzzy-match a query against a name, also trying each individual word
+/// so that "code" matches "Visual Studio Code" via the word "Code".
+fn best_match(matcher: &SkimMatcherV2, name: &str, query: &str) -> Option<i64> {
+    let full = matcher.fuzzy_match(name, query);
+    let word = name
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .filter_map(|w| matcher.fuzzy_match(w, query))
+        .max();
+    match (full, word) {
+        (Some(a), Some(b)) => Some(a.max(b)),
+        (a, None) => a,
+        (None, b) => b,
     }
 }
 
@@ -254,6 +270,15 @@ fn prefix_bonus(name: &str, query_lower: &str) -> i64 {
         // Shorter names get a bigger boost (e.g. "EA" > "EarTrumpet").
         let len_bonus = 60i64.saturating_sub(name.len() as i64 * 3);
         return 100 + len_bonus.max(0);
+    }
+    // Check individual words — "code" in "Visual Studio Code" gets a bonus.
+    for word in name_lower.split(|c: char| !c.is_alphanumeric()).filter(|w| !w.is_empty()) {
+        if word == query_lower {
+            return 80; // exact word match
+        }
+        if word.starts_with(query_lower) {
+            return 50; // word-prefix match
+        }
     }
     0
 }
@@ -297,7 +322,7 @@ fn tab_result(tab: &browser_tabs::BrowserTab) -> SearchResult {
     SearchResult {
         id: format!("tab:{}:{}", tab.window_hwnd, tab.title),
         title: tab.title.clone(),
-        subtitle: format!("Tab · {}", exe_name),
+        subtitle: format!("{}", exe_name),
         icon: icons::extract_icon_data_uri(&tab.exe_path).unwrap_or_default(),
         kind: "tab".into(),
     }

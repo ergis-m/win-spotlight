@@ -16,7 +16,8 @@
       "Skill(shadcn)",
       "Bash(cargo build:*)",
       "Bash(cargo test:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm dev *)"
     ]
   }
 }

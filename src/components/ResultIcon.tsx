@@ -121,8 +121,8 @@ function getFileIcon(filename: string): IconSvgElement {
 function FileIcon({ filename }: { filename: string }) {
   const icon = getFileIcon(filename);
   return (
-    <span className="flex size-8 items-center justify-center rounded-lg bg-info/15 text-info">
-      <HugeiconsIcon icon={icon} strokeWidth={2} className="size-4" />
+    <span className="flex size-6 items-center justify-center rounded-md bg-info/15 text-info">
+      <HugeiconsIcon icon={icon} strokeWidth={2} className="size-3.5" />
     </span>
   );
 }
@@ -141,7 +141,7 @@ function FileThumbnailIcon({ item }: { item: SearchResult }) {
   });
 
   if (thumbnail) {
-    return <img className="size-8 object-cover rounded-lg" src={thumbnail} alt="" />;
+    return <img className="size-6 object-cover rounded-md" src={thumbnail} alt="" />;
   }
 
   return <FileIcon filename={item.title} />;
@@ -150,16 +150,16 @@ function FileThumbnailIcon({ item }: { item: SearchResult }) {
 export function ResultIcon({ item }: { item: SearchResult }) {
   if (item.kind === "command") {
     return (
-      <span className="flex size-8 items-center justify-center rounded-lg bg-warning/15 text-warning">
-        <HugeiconsIcon icon={TerminalIcon} strokeWidth={2} className="size-4" />
+      <span className="flex size-6 items-center justify-center rounded-md bg-warning/15 text-warning">
+        <HugeiconsIcon icon={TerminalIcon} strokeWidth={2} className="size-3.5" />
       </span>
     );
   }
 
   if (item.kind === "url") {
     return (
-      <span className="flex size-8 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400">
-        <HugeiconsIcon icon={GlobeIcon} strokeWidth={2} className="size-4" />
+      <span className="flex size-6 items-center justify-center rounded-md bg-violet-500/10 text-violet-400">
+        <HugeiconsIcon icon={GlobeIcon} strokeWidth={2} className="size-3.5" />
       </span>
     );
   }
@@ -169,10 +169,10 @@ export function ResultIcon({ item }: { item: SearchResult }) {
   }
 
   if (item.icon) {
-    return <img className="size-8 object-contain rounded" src={item.icon} alt="" />;
+    return <img className="size-6 object-contain rounded" src={item.icon} alt="" />;
   }
   return (
-    <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+    <span className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-sm font-semibold text-primary">
       {item.title.charAt(0).toUpperCase()}
     </span>
   );
