@@ -25,7 +25,7 @@ export function App() {
     <div className="relative flex size-full flex-col">
       <PinHandle />
       <Command
-        className="rounded-none! bg-background/20 text-foreground p-1"
+        className="rounded-none! bg-background/50 text-foreground p-1"
         shouldFilter={false}
         loop
         value={selectedValue}
