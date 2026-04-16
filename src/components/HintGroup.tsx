@@ -9,7 +9,6 @@ import {
   Dollar01Icon,
   PercentIcon,
   BulbIcon,
-  TerminalIcon,
 } from "@hugeicons/core-free-icons";
 import type { InstantAnswerHint, InstantAnswerType } from "@/lib/instant-answer";
 import { ANSWER_ACCENT } from "@/lib/answer-accents";
@@ -22,7 +21,6 @@ const HINT_ICON: Record<InstantAnswerType, React.ReactNode> = {
   date: <HugeiconsIcon icon={Calendar01Icon} strokeWidth={2} className="size-4" />,
   timezone: <HugeiconsIcon icon={Clock01Icon} strokeWidth={2} className="size-4" />,
   color: <HugeiconsIcon icon={PaintBoardIcon} strokeWidth={2} className="size-4" />,
-  devtools: <HugeiconsIcon icon={TerminalIcon} strokeWidth={2} className="size-4" />,
 };
 
 interface HintGroupProps {

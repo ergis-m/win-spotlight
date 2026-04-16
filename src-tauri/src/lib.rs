@@ -4,7 +4,6 @@ mod file_indexer;
 mod file_search;
 mod icons;
 mod indexer;
-mod network;
 mod running;
 mod search;
 mod settings;
@@ -167,7 +166,6 @@ pub fn run() {
             commands::rebuild_file_index,
             commands::get_file_index_status,
             commands::get_file_thumbnail,
-            commands::get_network_info,
             commands::is_pinned,
             commands::toggle_pin,
         ])

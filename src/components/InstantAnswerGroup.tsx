@@ -11,7 +11,6 @@ import {
   PaintBoardIcon,
   Dollar01Icon,
   PercentIcon,
-  TerminalIcon,
 } from "@hugeicons/core-free-icons";
 import type { InstantAnswer, InstantAnswerType } from "@/lib/instant-answer";
 import { ANSWER_ACCENT } from "@/lib/answer-accents";
@@ -44,10 +43,6 @@ const ANSWER_META: Record<InstantAnswerType, { heading: string; icon: React.Reac
   color: {
     heading: "Color",
     icon: <HugeiconsIcon icon={PaintBoardIcon} strokeWidth={2} className="size-4" />,
-  },
-  devtools: {
-    heading: "Network",
-    icon: <HugeiconsIcon icon={TerminalIcon} strokeWidth={2} className="size-4" />,
   },
 };
 

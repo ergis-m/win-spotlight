@@ -12,5 +12,4 @@ export const ANSWER_ACCENT: Record<InstantAnswerType, string> = {
   date: "bg-primary/15 text-primary",
   timezone: "bg-primary/15 text-primary",
   color: "bg-destructive/15 text-destructive",
-  devtools: "bg-violet-500/15 text-violet-400",
 };

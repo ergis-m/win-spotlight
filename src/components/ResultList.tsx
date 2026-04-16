@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { CommandList, CommandEmpty, CommandGroup } from "@/components/ui/command";
 import { searchItems, activateItem } from "@/services/search";
 import {
@@ -20,7 +20,7 @@ export function ResultList() {
   const { data: results = [], isFetching: isSearching } = useQuery({
     queryKey: ["search", query, tab],
     queryFn: () => searchItems(query, tab),
-    placeholderData: (prev) => prev,
+    placeholderData: keepPreviousData,
   });
 
   const syncAnswers = useMemo(() => getInstantAnswer(query), [query]);

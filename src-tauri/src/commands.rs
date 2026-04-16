@@ -234,11 +234,6 @@ pub fn get_file_thumbnail(path: String) -> Option<String> {
     crate::icons::extract_file_thumbnail(&path, 64)
 }
 
-#[tauri::command]
-pub fn get_network_info() -> crate::network::NetworkInfo {
-    crate::network::get_network_info()
-}
-
 // ── Pin commands ──
 
 #[tauri::command]
