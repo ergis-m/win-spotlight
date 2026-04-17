@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "./components/App";
 import { loadAndApplySettings } from "./lib/theme";
 import "./lib/launcher-lifecycle";
+import "./lib/tauri-focus";
 import "./styles/global.css";
 
 loadAndApplySettings();

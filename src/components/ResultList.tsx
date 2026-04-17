@@ -9,6 +9,7 @@ import {
 } from "@/lib/instant-answer";
 import { useLauncherStore, setQuery } from "@/stores/launcher";
 import { setListElement, focusInput } from "@/lib/launcher-lifecycle";
+import { useRefreshOnFocus } from "@/lib/use-refresh-on-focus";
 import { InstantAnswerGroup } from "./InstantAnswerGroup";
 import { HintGroup } from "./HintGroup";
 import { ResultItem } from "./ResultItem";
@@ -17,11 +18,17 @@ export function ResultList() {
   const query = useLauncherStore((s) => s.query);
   const tab = useLauncherStore((s) => s.tab);
 
-  const { data: results = [], isFetching: isSearching } = useQuery({
+  const {
+    data: results = [],
+    isFetching: isSearching,
+    refetch,
+  } = useQuery({
     queryKey: ["search", query, tab],
     queryFn: () => searchItems(query, tab),
     placeholderData: keepPreviousData,
   });
+
+  useRefreshOnFocus(refetch);
 
   const syncAnswers = useMemo(() => getInstantAnswer(query), [query]);
 
