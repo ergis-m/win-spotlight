@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { CommandList, CommandEmpty, CommandGroup } from "@/components/ui/command";
 import { searchItems, activateItem } from "@/services/search";
@@ -7,7 +7,7 @@ import {
   getAsyncInstantAnswer,
   getInstantAnswerHints,
 } from "@/lib/instant-answer";
-import { useLauncherStore, setQuery } from "@/stores/launcher";
+import { useLauncherStore, setQuery, setSelectedValue } from "@/stores/launcher";
 import { setListElement, focusInput } from "@/lib/launcher-lifecycle";
 import { useRefreshOnFocus } from "@/lib/use-refresh-on-focus";
 import { InstantAnswerGroup } from "./InstantAnswerGroup";
@@ -17,6 +17,7 @@ import { ResultItem } from "./ResultItem";
 export function ResultList() {
   const query = useLauncherStore((s) => s.query);
   const tab = useLauncherStore((s) => s.tab);
+  const selectedValue = useLauncherStore((s) => s.selectedValue);
 
   const {
     data: results = [],
@@ -38,12 +39,41 @@ export function ResultList() {
     enabled: !syncAnswers && query.trim().length > 0,
   });
 
-  const instantAnswers = syncAnswers ?? asyncAnswers ?? [];
+  const instantAnswers = useMemo(
+    () => syncAnswers ?? asyncAnswers ?? [],
+    [syncAnswers, asyncAnswers],
+  );
 
   const hints = useMemo(
     () => (instantAnswers.length === 0 ? getInstantAnswerHints(query) : []),
     [query, instantAnswers.length],
   );
+
+  const firstItemId = useMemo(() => {
+    if (instantAnswers.length > 0) return "__instant_0__";
+    if (hints.length > 0) return "__hint_0__";
+    return results[0]?.id ?? "";
+  }, [instantAnswers.length, hints.length, results]);
+
+  const validIds = useMemo(() => {
+    const set = new Set<string>();
+    instantAnswers.forEach((_, idx) => set.add(`__instant_${idx}__`));
+    hints.forEach((_, idx) => set.add(`__hint_${idx}__`));
+    results.forEach((r) => set.add(r.id));
+    return set;
+  }, [instantAnswers, hints, results]);
+
+  const [prevFirstId, setPrevFirstId] = useState(firstItemId);
+  if (prevFirstId !== firstItemId) {
+    setPrevFirstId(firstItemId);
+    const wasOnPrevFirst = selectedValue === prevFirstId;
+    const isDangling = selectedValue !== "" && !validIds.has(selectedValue);
+    if (firstItemId && (wasOnPrevFirst || isDangling || selectedValue === "")) {
+      queueMicrotask(() => setSelectedValue(firstItemId));
+    }
+  } else if (firstItemId && selectedValue !== "" && !validIds.has(selectedValue)) {
+    queueMicrotask(() => setSelectedValue(firstItemId));
+  }
 
   const handleSelect = useCallback((id: string) => {
     activateItem(id);

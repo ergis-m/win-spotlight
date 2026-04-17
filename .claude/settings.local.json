@@ -17,7 +17,8 @@
       "Bash(cargo build:*)",
       "Bash(cargo test:*)",
       "Bash(pnpm lint:*)",
-      "Bash(pnpm dev *)"
+      "Bash(pnpm dev *)",
+      "Bash(pnpm test *)"
     ]
   }
 }
