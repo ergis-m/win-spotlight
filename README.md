@@ -11,6 +11,8 @@ A fast, Raycast-style launcher for Windows. Press **Alt+Space** to open a floati
 - **Global hotkey** (Alt+Space) to toggle the launcher
 - **Fuzzy search** across all installed apps (Start Menu, Desktop, UWP/Store apps)
 - **Running windows** shown with a green badge — select to switch focus
+- **Browser tabs** — jump to any open tab in Chrome, Edge, Brave, or Vivaldi (enumerated via UI Automation)
+- **Steam games** — installed games appear as results and launch via Steam (no running Steam process required)
 - **Usage tracking** — frequently launched apps rise to the top
 - **Real app icons** extracted via the Windows Shell API
 - **Acrylic blur** background with rounded corners on Windows 11
@@ -19,6 +21,8 @@ A fast, Raycast-style launcher for Windows. Press **Alt+Space** to open a floati
 - **Configurable indexing** — choose directories, exclude folders, set depth limits, and rebuild on demand
 - **Instant answers** — calculator, unit/currency conversion, color preview, date math, timezone conversion, and percentage helpers directly in the search bar
 - **Regional settings** — auto-detected locale with manual overrides for timezone and currency
+- **Pin mode** — pin the launcher open and drag it anywhere on screen via the grab handle
+- **Auto-updates** — checks for new releases in the background; install from the footer or Settings → About
 
 ## Instant Answers
 
