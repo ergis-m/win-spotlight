@@ -8,6 +8,7 @@ mod running;
 mod search;
 mod settings;
 mod steam;
+mod system_info;
 mod usage;
 mod window;
 
@@ -67,6 +68,7 @@ pub fn run() {
             app.manage(usage::UsageTracker::new());
             app.manage(window::PinState::new());
             app.manage(steam::SteamIndex::new());
+            app.manage(system_info::SystemMonitor::new());
 
             // Start background file indexing.
             let file_index = Arc::new(file_indexer::FileIndex::new());
@@ -168,6 +170,8 @@ pub fn run() {
             commands::get_file_thumbnail,
             commands::is_pinned,
             commands::toggle_pin,
+            commands::get_system_info,
+            commands::set_widgets_mode,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

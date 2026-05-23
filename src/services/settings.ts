@@ -1,9 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 
+export type WidgetsMode = "big" | "small" | "none";
+
 export interface AppSettings {
   autostart: boolean;
   theme: string;
   launcher_size: string;
+  widgets_mode: WidgetsMode;
 }
 
 export function getSettings(): Promise<AppSettings> {
@@ -20,6 +23,10 @@ export function setAutostart(enabled: boolean): Promise<void> {
 
 export function setLauncherSize(size: string): Promise<void> {
   return invoke("set_launcher_size", { size });
+}
+
+export function setWidgetsMode(mode: WidgetsMode): Promise<void> {
+  return invoke("set_widgets_mode", { mode });
 }
 
 // ── File search settings ──

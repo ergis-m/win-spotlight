@@ -118,6 +118,7 @@ pub struct SettingsResponse {
     pub autostart: bool,
     pub theme: String,
     pub launcher_size: String,
+    pub widgets_mode: String,
 }
 
 #[tauri::command]
@@ -125,7 +126,7 @@ pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
     // Read settings and release the mutex BEFORE calling is_autostart_enabled(),
     // which spawns a blocking subprocess (schtasks). Holding the lock during that
     // call blocks every other command that needs SettingsManager (e.g. search).
-    let (theme, launcher_size) = {
+    let (theme, launcher_size, widgets_mode) = {
         let s = manager.inner.lock().unwrap();
         (
             serde_json::to_value(&s.theme)
@@ -136,13 +137,31 @@ pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
                 .ok()
                 .and_then(|v| v.as_str().map(String::from))
                 .unwrap_or_else(|| "normal".to_string()),
+            serde_json::to_value(&s.widgets_mode)
+                .ok()
+                .and_then(|v| v.as_str().map(String::from))
+                .unwrap_or_else(|| "big".to_string()),
         )
     };
     SettingsResponse {
         autostart: crate::settings::is_autostart_enabled(),
         theme,
         launcher_size,
+        widgets_mode,
     }
+}
+
+#[tauri::command]
+pub fn set_widgets_mode(
+    mode: String,
+    manager: State<'_, SettingsManager>,
+) -> Result<(), String> {
+    let m: crate::settings::WidgetsMode =
+        serde_json::from_value(serde_json::Value::String(mode))
+            .map_err(|_| "Invalid widgets mode value".to_string())?;
+    manager.inner.lock().unwrap().widgets_mode = m;
+    manager.save();
+    Ok(())
 }
 
 #[tauri::command]
@@ -244,5 +263,12 @@ pub fn is_pinned(state: State<'_, crate::window::PinState>) -> bool {
 #[tauri::command]
 pub fn toggle_pin(state: State<'_, crate::window::PinState>) -> bool {
     state.toggle()
+}
+
+#[tauri::command]
+pub fn get_system_info(
+    monitor: State<'_, crate::system_info::SystemMonitor>,
+) -> crate::system_info::SystemInfo {
+    monitor.sample()
 }
 

@@ -19,6 +19,8 @@ pub struct Settings {
     #[serde(default)]
     pub launcher_size: LauncherSize,
     #[serde(default)]
+    pub widgets_mode: WidgetsMode,
+    #[serde(default)]
     pub file_search: FileSearchSettings,
 }
 
@@ -65,6 +67,15 @@ pub enum LauncherSize {
     Fancy,
 }
 
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum WidgetsMode {
+    #[default]
+    Big,
+    Small,
+    None,
+}
+
 impl LauncherSize {
     /// Returns (width, height) for the launcher window.
     pub fn dimensions(&self) -> (f64, f64) {
@@ -81,6 +92,7 @@ impl Default for Settings {
         Self {
             theme: Theme::default(),
             launcher_size: LauncherSize::default(),
+            widgets_mode: WidgetsMode::default(),
             file_search: FileSearchSettings::default(),
         }
     }
