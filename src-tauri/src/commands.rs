@@ -102,13 +102,7 @@ pub fn hide_window(app: AppHandle) {
 
 #[tauri::command]
 pub fn open_settings(app: AppHandle) {
-    if let Some(main_win) = app.get_webview_window("main") {
-        let _ = main_win.hide();
-    }
-    if let Some(win) = app.get_webview_window("settings") {
-        let _ = win.show();
-        let _ = win.set_focus();
-    }
+    crate::window::show_settings_window(&app);
 }
 
 // ── Settings commands ──
@@ -118,7 +112,7 @@ pub struct SettingsResponse {
     pub autostart: bool,
     pub theme: String,
     pub launcher_size: String,
-    pub widgets_mode: String,
+    pub widgets: crate::settings::WidgetsConfig,
 }
 
 #[tauri::command]
@@ -126,7 +120,7 @@ pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
     // Read settings and release the mutex BEFORE calling is_autostart_enabled(),
     // which spawns a blocking subprocess (schtasks). Holding the lock during that
     // call blocks every other command that needs SettingsManager (e.g. search).
-    let (theme, launcher_size, widgets_mode) = {
+    let (theme, launcher_size, widgets) = {
         let s = manager.inner.lock().unwrap();
         (
             serde_json::to_value(&s.theme)
@@ -137,29 +131,23 @@ pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
                 .ok()
                 .and_then(|v| v.as_str().map(String::from))
                 .unwrap_or_else(|| "normal".to_string()),
-            serde_json::to_value(&s.widgets_mode)
-                .ok()
-                .and_then(|v| v.as_str().map(String::from))
-                .unwrap_or_else(|| "big".to_string()),
+            s.widgets.clone(),
         )
     };
     SettingsResponse {
         autostart: crate::settings::is_autostart_enabled(),
         theme,
         launcher_size,
-        widgets_mode,
+        widgets,
     }
 }
 
 #[tauri::command]
-pub fn set_widgets_mode(
-    mode: String,
+pub fn set_widgets_config(
+    widgets: crate::settings::WidgetsConfig,
     manager: State<'_, SettingsManager>,
 ) -> Result<(), String> {
-    let m: crate::settings::WidgetsMode =
-        serde_json::from_value(serde_json::Value::String(mode))
-            .map_err(|_| "Invalid widgets mode value".to_string())?;
-    manager.inner.lock().unwrap().widgets_mode = m;
+    manager.inner.lock().unwrap().widgets = widgets;
     manager.save();
     Ok(())
 }

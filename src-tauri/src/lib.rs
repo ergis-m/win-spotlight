@@ -119,13 +119,7 @@ pub fn run() {
                 tray.set_menu(Some(tray_menu))?;
                 tray.on_menu_event(|app, event| match event.id().as_ref() {
                     "settings" => {
-                        if let Some(main_win) = app.get_webview_window("main") {
-                            let _ = main_win.hide();
-                        }
-                        if let Some(win) = app.get_webview_window("settings") {
-                            let _ = win.show();
-                            let _ = win.set_focus();
-                        }
+                        window::show_settings_window(app);
                     }
                     "quit" => {
                         app.exit(0);
@@ -171,7 +165,7 @@ pub fn run() {
             commands::is_pinned,
             commands::toggle_pin,
             commands::get_system_info,
-            commands::set_widgets_mode,
+            commands::set_widgets_config,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

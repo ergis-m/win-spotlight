@@ -8,13 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
 import { applyTheme, type Theme } from "@/lib/theme";
-import {
-  getSettings,
-  setTheme,
-  setLauncherSize,
-  setWidgetsMode,
-  type WidgetsMode,
-} from "@/services/settings";
+import { getSettings, setTheme, setLauncherSize } from "@/services/settings";
 
 export function AppearancePage() {
   const queryClient = useQueryClient();
@@ -36,13 +30,6 @@ export function AppearancePage() {
 
   const sizeMutation = useMutation({
     mutationFn: (size: string) => setLauncherSize(size),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
-    },
-  });
-
-  const widgetsMutation = useMutation({
-    mutationFn: (mode: WidgetsMode) => setWidgetsMode(mode),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
     },
@@ -84,27 +71,6 @@ export function AppearancePage() {
               <SelectItem value="compact">Compact</SelectItem>
               <SelectItem value="normal">Normal</SelectItem>
               <SelectItem value="fancy">Fancy</SelectItem>
-            </SelectContent>
-          </Select>
-        </ItemActions>
-      </Item>
-      <Item variant="muted" size="sm">
-        <ItemContent>
-          <ItemTitle>Widgets</ItemTitle>
-          <ItemDescription>System usage widgets shown below the results</ItemDescription>
-        </ItemContent>
-        <ItemActions>
-          <Select
-            value={settings.widgets_mode}
-            onValueChange={(v) => widgetsMutation.mutate(v as WidgetsMode)}
-          >
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="big">Big</SelectItem>
-              <SelectItem value="small">Small</SelectItem>
-              <SelectItem value="none">None</SelectItem>
             </SelectContent>
           </Select>
         </ItemActions>

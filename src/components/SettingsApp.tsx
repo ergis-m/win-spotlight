@@ -7,6 +7,7 @@ import {
   GlobeIcon,
   PaintBoardIcon,
   HardDriveIcon,
+  DashboardSquare01Icon,
   MinusSignIcon,
   SquareIcon,
   Cancel01Icon,
@@ -15,6 +16,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GeneralPage } from "./settings/GeneralPage";
 import { AppearancePage } from "./settings/AppearancePage";
+import { WidgetsPage } from "./settings/WidgetsPage";
 import { IndexingPage } from "./settings/IndexingPage";
 import { RegionalPage } from "./settings/RegionalPage";
 
@@ -28,6 +30,7 @@ type NavItem = {
 const PAGES: NavItem[] = [
   { id: "general", label: "General", icon: Settings01Icon, component: GeneralPage },
   { id: "appearance", label: "Appearance", icon: PaintBoardIcon, component: AppearancePage },
+  { id: "widgets", label: "Widgets", icon: DashboardSquare01Icon, component: WidgetsPage },
   { id: "indexing", label: "Indexing", icon: HardDriveIcon, component: IndexingPage },
   { id: "regional", label: "Regional", icon: GlobeIcon, component: RegionalPage },
 ];
@@ -96,7 +99,7 @@ export function SettingsApp() {
             <TabsContent
               key={item.id}
               value={item.id}
-              className="h-full flex flex-col grow shrink-0"
+              className="h-full flex flex-col grow shrink-0 max-w-300 w-full mx-auto"
             >
               <TopOffset className="items-center flex pl-4">
                 <h3 className="text-lg font-semibold tracking-tight">{item.label}</h3>

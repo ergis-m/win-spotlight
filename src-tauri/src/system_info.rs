@@ -19,6 +19,8 @@ pub struct SystemInfo {
     pub memory_used_bytes: u64,
     pub memory_total_bytes: u64,
     pub drives: Vec<DriveInfo>,
+    /// Seconds since the OS booted — exposed for the Uptime widget.
+    pub uptime_seconds: u64,
 }
 
 pub struct SystemMonitor {
@@ -60,6 +62,7 @@ impl SystemMonitor {
             memory_used_bytes,
             memory_total_bytes,
             drives,
+            uptime_seconds: System::uptime(),
         }
     }
 }

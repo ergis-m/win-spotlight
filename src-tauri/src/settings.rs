@@ -18,10 +18,59 @@ pub struct Settings {
     pub theme: Theme,
     #[serde(default)]
     pub launcher_size: LauncherSize,
+    /// Legacy "big | small | none" mode. Kept only so we can migrate it into
+    /// `widgets` on first load, then dropped (skipped on serialize).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub widgets_mode: Option<WidgetsMode>,
     #[serde(default)]
-    pub widgets_mode: WidgetsMode,
+    pub widgets: WidgetsConfig,
     #[serde(default)]
     pub file_search: FileSearchSettings,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct WidgetsConfig {
+    /// Overall toggle — when false, no widgets render regardless of layout.
+    pub enabled: bool,
+    /// Ordered list. The frontend reconciles against its registry, so unknown
+    /// IDs here are ignored and new widgets added to the app are appended.
+    pub layout: Vec<WidgetLayoutEntry>,
+    /// Legacy "big | small" field. Accepted on read and dropped on save —
+    /// per-widget grid footprint replaces this.
+    #[serde(default, skip_serializing)]
+    #[allow(dead_code)]
+    pub size: Option<String>,
+}
+
+impl Default for WidgetsConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            layout: Vec::new(),
+            size: None,
+        }
+    }
+}
+
+fn default_true() -> bool {
+    true
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct WidgetLayoutEntry {
+    pub id: String,
+    /// Legacy presence flag. Older files set this; the current UI curates by
+    /// adding/removing entries, so placed widgets default to enabled.
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    /// Grid-cell size override (frontend falls back to the registry default).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub w: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub h: Option<u32>,
+    /// Per-widget options, opaque to the backend.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub config: Option<serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -80,9 +129,9 @@ impl LauncherSize {
     /// Returns (width, height) for the launcher window.
     pub fn dimensions(&self) -> (f64, f64) {
         match self {
-            LauncherSize::Compact => (580.0, 360.0),
-            LauncherSize::Normal => (640.0, 420.0),
-            LauncherSize::Fancy => (720.0, 500.0),
+            LauncherSize::Compact => (680.0, 440.0),
+            LauncherSize::Normal => (800.0, 540.0),
+            LauncherSize::Fancy => (960.0, 660.0),
         }
     }
 }
@@ -92,7 +141,8 @@ impl Default for Settings {
         Self {
             theme: Theme::default(),
             launcher_size: LauncherSize::default(),
-            widgets_mode: WidgetsMode::default(),
+            widgets_mode: None,
+            widgets: WidgetsConfig::default(),
             file_search: FileSearchSettings::default(),
         }
     }
@@ -106,14 +156,28 @@ pub struct SettingsManager {
 impl SettingsManager {
     pub fn new() -> Self {
         let path = storage_path();
-        let settings = std::fs::read_to_string(&path)
+        let mut settings: Settings = std::fs::read_to_string(&path)
             .ok()
             .and_then(|s| serde_json::from_str(&s).ok())
             .unwrap_or_default();
-        Self {
+
+        // One-time migration from the legacy `widgets_mode` field. After this
+        // runs the field is dropped from the on-disk file via skip_serializing.
+        // Old "big"/"small" mode no longer maps to anything — per-widget grid
+        // footprint replaces it. Only "none" still carries meaning.
+        if let Some(WidgetsMode::None) = settings.widgets_mode.take() {
+            settings.widgets.enabled = false;
+        }
+        // Drop the legacy size hint on save.
+        settings.widgets.size = None;
+
+        let mgr = Self {
             inner: Mutex::new(settings),
             path,
-        }
+        };
+        // Persist the post-migration state so the legacy field is removed on disk.
+        mgr.save();
+        mgr
     }
 
     pub fn save(&self) {

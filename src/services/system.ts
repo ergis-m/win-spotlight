@@ -13,6 +13,8 @@ export interface SystemInfo {
   memory_used_bytes: number;
   memory_total_bytes: number;
   drives: DriveInfo[];
+  /** Seconds since the OS booted. */
+  uptime_seconds: number;
 }
 
 const HISTORY_SIZE = 60;
