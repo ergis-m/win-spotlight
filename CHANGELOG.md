@@ -13,6 +13,14 @@ version and date, and its contents become the GitHub Release notes.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.4.3] - 2026-05-29
+
+### Added
+
 - Weather widget: current conditions, temperature, and an hourly forecast, with a selectable temperature unit (automatic, °C, or °F).
 - Combined System widget showing live CPU and memory usage on a shared chart, plus uptime, memory, and CPU-core details.
 - Clock widget options for a 12- or 24-hour format and an optional seconds display.
@@ -101,7 +109,8 @@ version and date, and its contents become the GitHub Release notes.
 
 - Initial release: React + shadcn UI, calculator, and commands.
 
-[Unreleased]: https://github.com/ergis-m/win-spotlight/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/ergis-m/win-spotlight/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/ergis-m/win-spotlight/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/ergis-m/win-spotlight/compare/v0.4.0...v0.4.2
 [0.4.0]: https://github.com/ergis-m/win-spotlight/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/ergis-m/win-spotlight/compare/v0.3.1...v0.3.2
