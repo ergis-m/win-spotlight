@@ -1,7 +1,8 @@
 import { Activity, Clock } from "lucide-react";
 import { useSystemInfo, getHistory } from "@/services/system";
 import { colorForId, type WidgetColor } from "@/lib/widget-colors";
-import { Tile, AreaChart, glow } from "./primitives";
+import { Tile } from "./Tile";
+import { AreaChart, glow } from "./primitives";
 
 const GIB = 1024 ** 3;
 const gb = (b: number) => (b / GIB).toFixed(1);

@@ -3,7 +3,8 @@ import { useWeather, type WeatherHour, type UnitPreference } from "@/services/we
 import { lookForCode } from "@/lib/weather-codes";
 import type { WidgetColor } from "@/lib/widget-colors";
 import type { WidgetConfig } from "@/lib/widgets/types";
-import { Tile, TileHeader, Value } from "./primitives";
+import { Tile } from "./Tile";
+import { TileHeader, Value } from "./primitives";
 
 // Sky-blue accent + gradient, echoing the Figma weather card rather than a
 // hashed per-id hue, so the temperature and icons read on the blue backdrop.

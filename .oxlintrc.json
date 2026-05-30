@@ -4,7 +4,14 @@
   "rules": {
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",
+    "react/no-multi-comp": "warn",
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
   },
+  "overrides": [
+    {
+      "files": ["src/components/ui/**"],
+      "rules": { "react/no-multi-comp": "off" }
+    }
+  ],
   "ignorePatterns": ["dist/", "src-tauri/"]
 }
