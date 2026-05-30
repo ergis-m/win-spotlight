@@ -113,6 +113,7 @@ pub struct SettingsResponse {
     pub theme: String,
     pub launcher_size: String,
     pub widgets: crate::settings::WidgetsConfig,
+    pub show_browser_tabs: bool,
 }
 
 #[tauri::command]
@@ -120,7 +121,7 @@ pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
     // Read settings and release the mutex BEFORE calling is_autostart_enabled(),
     // which spawns a blocking subprocess (schtasks). Holding the lock during that
     // call blocks every other command that needs SettingsManager (e.g. search).
-    let (theme, launcher_size, widgets) = {
+    let (theme, launcher_size, widgets, show_browser_tabs) = {
         let s = manager.inner.lock().unwrap();
         (
             serde_json::to_value(&s.theme)
@@ -132,6 +133,7 @@ pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
                 .and_then(|v| v.as_str().map(String::from))
                 .unwrap_or_else(|| "normal".to_string()),
             s.widgets.clone(),
+            s.show_browser_tabs,
         )
     };
     SettingsResponse {
@@ -139,6 +141,7 @@ pub fn get_settings(manager: State<'_, SettingsManager>) -> SettingsResponse {
         theme,
         launcher_size,
         widgets,
+        show_browser_tabs,
     }
 }
 
@@ -161,6 +164,16 @@ pub fn set_theme(
         serde_json::from_value(serde_json::Value::String(theme))
             .map_err(|_| "Invalid theme value".to_string())?;
     manager.inner.lock().unwrap().theme = t;
+    manager.save();
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_show_browser_tabs(
+    enabled: bool,
+    manager: State<'_, SettingsManager>,
+) -> Result<(), String> {
+    manager.inner.lock().unwrap().show_browser_tabs = enabled;
     manager.save();
     Ok(())
 }
@@ -258,5 +271,73 @@ pub fn get_system_info(
     monitor: State<'_, crate::system_info::SystemMonitor>,
 ) -> crate::system_info::SystemInfo {
     monitor.sample()
+}
+
+// ── System dark mode (1×1 widget toggle) ──
+
+/// Where Windows stores the personalization light/dark preference. The values
+/// are DWORDs where 1 means light and 0 means dark; an absent value is light.
+const PERSONALIZE_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+
+#[tauri::command]
+pub fn get_system_dark_mode() -> Result<bool, String> {
+    use winreg::enums::HKEY_CURRENT_USER;
+    use winreg::RegKey;
+    let key = RegKey::predef(HKEY_CURRENT_USER)
+        .open_subkey(PERSONALIZE_KEY)
+        .map_err(|e| e.to_string())?;
+    let apps_use_light: u32 = key.get_value("AppsUseLightTheme").unwrap_or(1);
+    Ok(apps_use_light == 0)
+}
+
+#[tauri::command]
+pub fn set_system_dark_mode(dark: bool) -> Result<(), String> {
+    use winreg::enums::{HKEY_CURRENT_USER, KEY_SET_VALUE};
+    use winreg::RegKey;
+    // Set both the app and system scopes so the taskbar and window frames follow,
+    // matching what the Settings app does. 0 = dark, 1 = light.
+    let value: u32 = if dark { 0 } else { 1 };
+    let key = RegKey::predef(HKEY_CURRENT_USER)
+        .open_subkey_with_flags(PERSONALIZE_KEY, KEY_SET_VALUE)
+        .map_err(|e| e.to_string())?;
+    key.set_value("AppsUseLightTheme", &value)
+        .map_err(|e| e.to_string())?;
+    key.set_value("SystemUsesLightTheme", &value)
+        .map_err(|e| e.to_string())?;
+    broadcast_theme_change();
+    Ok(())
+}
+
+/// Broadcast WM_SETTINGCHANGE("ImmersiveColorSet") so the shell and running
+/// apps repaint with the new theme without requiring a sign-out.
+fn broadcast_theme_change() {
+    const HWND_BROADCAST: isize = 0xffff;
+    const WM_SETTINGCHANGE: u32 = 0x001A;
+    const SMTO_ABORTIFHUNG: u32 = 0x0002;
+    #[link(name = "user32")]
+    extern "system" {
+        fn SendMessageTimeoutW(
+            hwnd: isize,
+            msg: u32,
+            wp: usize,
+            lp: isize,
+            flags: u32,
+            timeout: u32,
+            result: *mut isize,
+        ) -> isize;
+    }
+    let param: Vec<u16> = "ImmersiveColorSet\0".encode_utf16().collect();
+    let mut result: isize = 0;
+    unsafe {
+        SendMessageTimeoutW(
+            HWND_BROADCAST,
+            WM_SETTINGCHANGE,
+            0,
+            param.as_ptr() as isize,
+            SMTO_ABORTIFHUNG,
+            100,
+            &mut result,
+        );
+    }
 }
 

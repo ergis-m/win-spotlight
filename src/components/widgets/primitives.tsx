@@ -71,6 +71,68 @@ export function Caption({ children }: { children: ReactNode }) {
   return <div className="text-sm text-muted-foreground truncate">{children}</div>;
 }
 
+/**
+ * A 1×1 tile that is itself a button — for simple toggles (dark mode) or
+ * single-click actions. Shows an icon over a small label and lights up in the
+ * widget's accent color when `active`. Fills its cell; the parent locks it
+ * square. In the settings editor the tile is rendered non-interactive, so this
+ * doubles as a live state preview there.
+ */
+export function ActionTile({
+  label,
+  icon: Icon,
+  color,
+  active,
+  pending,
+  onActivate,
+}: {
+  label: string;
+  icon: LucideIcon;
+  color: WidgetColor;
+  active?: boolean;
+  pending?: boolean;
+  onActivate: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onActivate}
+      disabled={pending}
+      aria-label={label}
+      aria-pressed={active}
+      className={cn(
+        "relative flex size-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-md p-2",
+        "bg-linear-to-br from-background to-primary/30",
+        "transition-[transform,filter] duration-150 hover:brightness-110 active:scale-95",
+        "disabled:pointer-events-none disabled:opacity-60",
+      )}
+      style={
+        active
+          ? { boxShadow: `inset 0 0 0 1.5px ${color.stroke}, 0 0 18px ${color.fill}` }
+          : undefined
+      }
+    >
+      <Icon
+        className={cn("size-7 shrink-0", !active && "text-muted-foreground")}
+        style={
+          active
+            ? { color: color.stroke, filter: `drop-shadow(0 0 10px ${color.fill})` }
+            : undefined
+        }
+      />
+      <span
+        className={cn(
+          "max-w-full truncate text-[10px] font-semibold uppercase tracking-widest",
+          !active && "text-muted-foreground",
+        )}
+        style={active ? { color: color.stroke } : undefined}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
 export interface ChartSeries {
   history: number[];
   color: WidgetColor;

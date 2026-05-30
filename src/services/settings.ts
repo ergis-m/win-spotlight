@@ -8,6 +8,7 @@ export interface AppSettings {
   theme: string;
   launcher_size: string;
   widgets: WidgetsConfig;
+  show_browser_tabs: boolean;
 }
 
 export function getSettings(): Promise<AppSettings> {
@@ -20,6 +21,10 @@ export function setTheme(theme: string): Promise<void> {
 
 export function setAutostart(enabled: boolean): Promise<void> {
   return invoke("set_autostart", { enabled });
+}
+
+export function setShowBrowserTabs(enabled: boolean): Promise<void> {
+  return invoke("set_show_browser_tabs", { enabled });
 }
 
 export function setLauncherSize(size: string): Promise<void> {

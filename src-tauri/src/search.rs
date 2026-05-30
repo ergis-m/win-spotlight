@@ -33,14 +33,17 @@ pub fn query(
     limit: usize,
 ) -> Vec<SearchResult> {
     let windows = running::get_windows();
-    let file_search_enabled = settings_mgr.inner.lock().unwrap().file_search.enabled;
+    let (file_search_enabled, show_browser_tabs) = {
+        let s = settings_mgr.inner.lock().unwrap();
+        (s.file_search.enabled, s.show_browser_tabs)
+    };
     let include_apps = mode == "all" || mode == "apps";
     let include_files = file_search_enabled && (mode == "all" || mode == "files");
     let include_media = file_search_enabled && mode == "media";
 
     // Enumerate browser tabs once — used for both tab count on windows and
     // individual tab search results.
-    let tabs = if include_apps {
+    let tabs = if include_apps && show_browser_tabs {
         browser_tabs::get_browser_tabs(&windows)
     } else {
         Vec::new()

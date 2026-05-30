@@ -1,8 +1,9 @@
-import { Activity, HardDrive, Clock, CloudSun } from "lucide-react";
+import { Activity, HardDrive, Clock, CloudSun, MoonStar } from "lucide-react";
 import { SystemWidget } from "@/components/widgets/SystemWidget";
 import { DrivesWidget } from "@/components/widgets/DrivesWidget";
 import { ClockWidget } from "@/components/widgets/ClockWidget";
 import { WeatherWidget } from "@/components/widgets/WeatherWidget";
+import { DarkModeWidget } from "@/components/widgets/DarkModeWidget";
 import { clampSize, entrySize, type WidgetDefinition, type WidgetLayoutEntry } from "./types";
 
 /**
@@ -73,6 +74,17 @@ export const WIDGETS: WidgetDefinition[] = [
         ],
       },
     ],
+  },
+  {
+    id: "dark-mode",
+    name: "Dark Mode",
+    description: "Toggle Windows between light and dark theme.",
+    icon: MoonStar,
+    Component: DarkModeWidget,
+    gridSize: { w: 1, h: 1 },
+    minSize: { w: 1, h: 1 },
+    maxSize: { w: 1, h: 1 },
+    defaultEnabled: false,
   },
 ];
 

@@ -155,6 +155,7 @@ pub fn run() {
             commands::open_settings,
             commands::get_settings,
             commands::set_autostart,
+            commands::set_show_browser_tabs,
             commands::set_theme,
             commands::set_launcher_size,
             commands::get_file_search_settings,
@@ -166,6 +167,8 @@ pub fn run() {
             commands::toggle_pin,
             commands::get_system_info,
             commands::set_widgets_config,
+            commands::get_system_dark_mode,
+            commands::set_system_dark_mode,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

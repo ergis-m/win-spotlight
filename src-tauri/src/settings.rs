@@ -26,6 +26,10 @@ pub struct Settings {
     pub widgets: WidgetsConfig,
     #[serde(default)]
     pub file_search: FileSearchSettings,
+    /// When true, open browser tabs appear as individual search results.
+    /// When false, the browser window is shown instead.
+    #[serde(default = "default_true")]
+    pub show_browser_tabs: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -144,6 +148,7 @@ impl Default for Settings {
             widgets_mode: None,
             widgets: WidgetsConfig::default(),
             file_search: FileSearchSettings::default(),
+            show_browser_tabs: true,
         }
     }
 }

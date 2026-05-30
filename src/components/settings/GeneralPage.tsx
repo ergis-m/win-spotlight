@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
 import { Kbd } from "@/components/ui/kbd";
 import { getVersion } from "@tauri-apps/api/app";
-import { getSettings, setAutostart } from "@/services/settings";
+import { getSettings, setAutostart, setShowBrowserTabs } from "@/services/settings";
 import { type UpdateStatus, checkForUpdate, downloadAndInstall } from "@/services/updater";
 
 export function GeneralPage() {
@@ -67,6 +67,13 @@ export function GeneralPage() {
     },
   });
 
+  const browserTabsMutation = useMutation({
+    mutationFn: (enabled: boolean) => setShowBrowserTabs(enabled),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+    },
+  });
+
   if (!settings) return null;
 
   return (
@@ -117,6 +124,26 @@ export function GeneralPage() {
             checked={autostartMutation.isPending ? autostartMutation.variables : settings.autostart}
             disabled={autostartMutation.isPending}
             onCheckedChange={(v) => autostartMutation.mutate(v)}
+          />
+        </ItemActions>
+      </Item>
+
+      <Item variant="muted" size="sm">
+        <ItemContent>
+          <ItemTitle>Show browser tabs</ItemTitle>
+          <ItemDescription>
+            List each open Chrome, Edge, or Brave tab as its own result
+          </ItemDescription>
+        </ItemContent>
+        <ItemActions>
+          <Switch
+            checked={
+              browserTabsMutation.isPending
+                ? browserTabsMutation.variables
+                : settings.show_browser_tabs
+            }
+            disabled={browserTabsMutation.isPending}
+            onCheckedChange={(v) => browserTabsMutation.mutate(v)}
           />
         </ItemActions>
       </Item>

@@ -21,12 +21,19 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
-    minify: "esbuild",
+    minify: "oxc",
     outDir: "dist",
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
         settings: resolve(__dirname, "settings.html"),
+      },
+      output: {
+        minify: {
+          compress: { dropConsole: true, dropDebugger: true },
+          mangle: true,
+          codegen: true,
+        },
       },
     },
   },

@@ -59,3 +59,23 @@ export function useSystemInfo() {
     refetchOnWindowFocus: false,
   });
 }
+
+// ── System dark mode (1×1 widget toggle) ──
+
+/** Whether Windows is currently in dark mode (system + apps preference). */
+export function getSystemDarkMode(): Promise<boolean> {
+  return invoke<boolean>("get_system_dark_mode");
+}
+
+export function setSystemDarkMode(dark: boolean): Promise<void> {
+  return invoke("set_system_dark_mode", { dark });
+}
+
+export function useSystemDarkMode() {
+  return useQuery({
+    queryKey: ["system-dark-mode"],
+    queryFn: getSystemDarkMode,
+    // Picks up changes made elsewhere (Settings app) without hammering the registry.
+    refetchInterval: 4000,
+  });
+}
