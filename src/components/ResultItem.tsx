@@ -15,11 +15,15 @@ interface ResultItemProps {
 
 export function ResultItem({ item, onSelect }: ResultItemProps) {
   const badge = BADGE_BY_KIND[item.kind];
+
   return (
     <CommandItem
       key={item.id}
       value={item.id}
-      onSelect={onSelect}
+      onSelect={(id) => {
+        console.log(id);
+        onSelect(id);
+      }}
       className="[&>svg.ml-auto]:hidden"
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">

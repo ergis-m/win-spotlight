@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { colorForId } from "@/lib/widget-colors";
 import type { WidgetConfig } from "@/lib/widgets/types";
 import { setSystemDarkMode, useSystemDarkMode } from "@/services/system";
-import { Tile } from "./Tile";
+import Tile from "./Tile";
 
 const QUERY_KEY = ["system-dark-mode"];
 
@@ -47,7 +47,9 @@ export function DarkModeWidget(_props: { config: WidgetConfig }) {
       )}
       style={
         isDark
-          ? { boxShadow: `inset 0 0 0 1.5px ${color.stroke}, 0 0 18px ${color.fill}` }
+          ? {
+              boxShadow: `inset 0 0 0 1.5px ${color.stroke}, 0 0 18px ${color.fill}`,
+            }
           : undefined
       }
     >

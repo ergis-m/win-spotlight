@@ -3,12 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Command } from "@/components/ui/command";
 import { hideWindow } from "@/services/search";
 import { getSettings } from "@/services/settings";
-import { SearchFooter } from "./SearchFooter";
-import { PinHandle } from "./PinHandle";
-import { LauncherInput } from "./LauncherInput";
-import { ResultList } from "./ResultList";
+import { SearchFooter } from "@/components/SearchFooter";
+import { PinHandle } from "@/components/PinHandle";
+import { LauncherInput } from "@/components/LauncherInput";
+import { ResultList } from "@/components/ResultList";
 import { useLauncherStore, cycleTab, setSelectedValue, resetLauncher } from "@/stores/launcher";
-import { WidgetArea } from "./WidgetArea";
+import { WidgetArea } from "@/layouts/WidgetArea";
+import { FocusRing } from "@/components/FocusRing";
 
 export function App() {
   const selectedValue = useLauncherStore((s) => s.selectedValue);
@@ -50,11 +51,10 @@ export function App() {
           <div className="flex-1 min-h-0 overflow-auto scrollbar-thin mt-1">
             <WidgetArea layout={widgets.layout} />
           </div>
-        ) : showHome ? (
-          <div className="flex-1 min-h-0" />
         ) : (
           <ResultList />
         )}
+        <FocusRing />
         <SearchFooter />
       </Command>
     </div>

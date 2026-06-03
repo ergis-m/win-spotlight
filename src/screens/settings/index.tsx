@@ -14,11 +14,11 @@ import {
 } from "@hugeicons/core-free-icons";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { GeneralPage } from "./settings/GeneralPage";
-import { AppearancePage } from "./settings/AppearancePage";
-import { WidgetsPage } from "./settings/WidgetsPage";
-import { IndexingPage } from "./settings/IndexingPage";
-import { RegionalPage } from "./settings/RegionalPage";
+import { GeneralPage } from "./general";
+import { AppearancePage } from "./appearance";
+import { WidgetsPage } from "./widgets";
+import { IndexingPage } from "./search-index";
+import { RegionalPage } from "./regional";
 
 type NavItem = {
   id: string;
@@ -28,11 +28,36 @@ type NavItem = {
 };
 
 const PAGES: NavItem[] = [
-  { id: "general", label: "General", icon: Settings01Icon, component: GeneralPage },
-  { id: "appearance", label: "Appearance", icon: PaintBoardIcon, component: AppearancePage },
-  { id: "widgets", label: "Widgets", icon: DashboardSquare01Icon, component: WidgetsPage },
-  { id: "indexing", label: "Indexing", icon: HardDriveIcon, component: IndexingPage },
-  { id: "regional", label: "Regional", icon: GlobeIcon, component: RegionalPage },
+  {
+    id: "general",
+    label: "General",
+    icon: Settings01Icon,
+    component: GeneralPage,
+  },
+  {
+    id: "appearance",
+    label: "Appearance",
+    icon: PaintBoardIcon,
+    component: AppearancePage,
+  },
+  {
+    id: "widgets",
+    label: "Widgets",
+    icon: DashboardSquare01Icon,
+    component: WidgetsPage,
+  },
+  {
+    id: "indexing",
+    label: "Indexing",
+    icon: HardDriveIcon,
+    component: IndexingPage,
+  },
+  {
+    id: "regional",
+    label: "Regional",
+    icon: GlobeIcon,
+    component: RegionalPage,
+  },
 ];
 
 const appWindow = getCurrentWindow();
@@ -41,7 +66,7 @@ const TopOffset = ({ className, ...props }: ComponentProps<"div">) => {
   return <div data-tauri-drag-region className={cn("h-12", className)} {...props} />;
 };
 
-export function SettingsApp() {
+export function SettingsScreen() {
   return (
     <div className="flex h-full overflow-hidden">
       <div className="flex h-9 shrink-0 items-center justify-end absolute top-0 right-0">

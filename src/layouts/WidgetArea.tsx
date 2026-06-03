@@ -23,8 +23,6 @@ interface WidgetAreaProps {
 export function WidgetArea({ layout, className }: WidgetAreaProps) {
   const resolved = useMemo(() => reconcileLayout(layout), [layout]);
 
-  console.log(layout);
-
   if (resolved.length === 0) return null;
 
   return (

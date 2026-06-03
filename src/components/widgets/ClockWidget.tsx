@@ -3,7 +3,7 @@ import { Clock } from "lucide-react";
 import { useTick } from "@/lib/use-tick";
 import { colorForId } from "@/lib/widget-colors";
 import type { WidgetConfig } from "@/lib/widgets/types";
-import { Tile } from "./Tile";
+import Tile from "./Tile";
 import { TileHeader, Value, Caption } from "./primitives";
 
 function pad(n: number): string {

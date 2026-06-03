@@ -3,7 +3,7 @@ import { useWeather, type WeatherHour, type UnitPreference } from "@/services/we
 import { lookForCode } from "@/lib/weather-codes";
 import type { WidgetColor } from "@/lib/widget-colors";
 import type { WidgetConfig } from "@/lib/widgets/types";
-import { Tile } from "./Tile";
+import Tile from "./Tile";
 import { TileHeader, Value } from "./primitives";
 
 // Sky-blue accent + gradient, echoing the Figma weather card rather than a
@@ -83,7 +83,10 @@ export function WeatherWidget({ config }: { config: WidgetConfig }) {
         <div className="flex shrink-0 items-center gap-2.5">
           <CurrentIcon
             className="size-11 shrink-0"
-            style={{ color: color.stroke, filter: `drop-shadow(0 0 12px ${color.fill})` }}
+            style={{
+              color: color.stroke,
+              filter: `drop-shadow(0 0 12px ${color.fill})`,
+            }}
           />
           <div className="min-w-0">
             <Value color={color}>{deg(data.current.temp)}</Value>

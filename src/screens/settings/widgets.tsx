@@ -85,7 +85,7 @@ function WidgetsEditor({ initial }: { initial: AppSettings }) {
     persist({
       ...config,
       layout: config.layout.map((e) =>
-        e.id === id ? { ...e, config: { ...(e.config ?? {}), [key]: value } } : e,
+        e.id === id ? { ...e, config: { ...e.config, [key]: value } } : e,
       ),
     });
 

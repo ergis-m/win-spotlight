@@ -1,7 +1,7 @@
 import { Activity, Clock } from "lucide-react";
 import { useSystemInfo, getHistory } from "@/services/system";
 import { colorForId, type WidgetColor } from "@/lib/widget-colors";
-import { Tile } from "./Tile";
+import Tile from "./Tile";
 import { AreaChart, glow } from "./primitives";
 
 const GIB = 1024 ** 3;
@@ -22,7 +22,10 @@ function Legend({ label, value, color }: { label: string; value: string; color: 
     <div className="flex items-center gap-1.5">
       <span
         className="size-2 shrink-0 rounded-full"
-        style={{ background: color.stroke, boxShadow: `0 0 6px ${color.stroke}` }}
+        style={{
+          background: color.stroke,
+          boxShadow: `0 0 6px ${color.stroke}`,
+        }}
       />
       <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}

@@ -61,7 +61,9 @@ function CommandInput({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof CommandPrimitive.Input> & { children?: React.ReactNode }) {
+}: React.ComponentProps<typeof CommandPrimitive.Input> & {
+  children?: React.ReactNode;
+}) {
   return (
     <div data-slot="command-input-wrapper" className="p-1 pb-0">
       <InputGroup className="h-9 rounded-md bg-input/50">
@@ -147,7 +149,7 @@ function CommandItem({
       data-slot="command-item"
       className={cn(
         "group/command-item relative flex cursor-default items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium outline-hidden select-none in-data-[slot=dialog-content]:rounded-3xl data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50  [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-selected:*:[svg]:text-foreground",
-        "data-selected:bg-background/20 data-selected:ring-primary/50 ring ring-transparent data-selected:text-foreground",
+        "data-selected:bg-background/20 data-selected:text-foreground",
         className,
       )}
       {...props}

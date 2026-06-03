@@ -34,7 +34,4 @@ function TileLabel({ className, ...props }: ComponentProps<"span">) {
   );
 }
 
-Tile.Icon = TileIcon;
-Tile.Label = TileLabel;
-
-export { Tile };
+export default Object.assign(Tile, { Icon: TileIcon, Label: TileLabel });

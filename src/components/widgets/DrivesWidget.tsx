@@ -1,7 +1,7 @@
 import { HardDrive } from "lucide-react";
 import { useSystemInfo, driveHistoryKey, type DriveInfo } from "@/services/system";
 import { colorForId } from "@/lib/widget-colors";
-import { Tile } from "./Tile";
+import Tile from "./Tile";
 import { TileHeader } from "./primitives";
 
 const GIB = 1024 ** 3;
