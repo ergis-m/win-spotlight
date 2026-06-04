@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { observable } from "@legendapp/state";
 import type { SearchMode } from "@/services/search";
 
 export const TABS: { key: SearchMode; label: string; placeholder: string }[] = [
@@ -9,30 +9,40 @@ export const TABS: { key: SearchMode; label: string; placeholder: string }[] = [
 ];
 
 interface LauncherState {
+  rawQuery: string;
   query: string;
   tab: SearchMode;
   selectedValue: string;
 }
 
-export const useLauncherStore = create<LauncherState>(() => ({
+export const launcher$ = observable<LauncherState>({
+  rawQuery: "",
   query: "",
   tab: "all",
   selectedValue: "",
-}));
+});
 
-export const setQuery = (query: string) => useLauncherStore.setState({ query, selectedValue: "" });
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
-export const setTab = (tab: SearchMode) => useLauncherStore.setState({ tab });
+export const setQuery = (query: string) => {
+  launcher$.rawQuery.set(query);
+  launcher$.selectedValue.set("");
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => launcher$.query.set(query), 20);
+};
 
-export const cycleTab = (reverse: boolean) =>
-  useLauncherStore.setState((state) => {
-    const idx = TABS.findIndex((t) => t.key === state.tab);
-    const next = reverse ? (idx - 1 + TABS.length) % TABS.length : (idx + 1) % TABS.length;
-    return { tab: TABS[next].key };
-  });
+export const setTab = (tab: SearchMode) => launcher$.tab.set(tab);
+
+export const cycleTab = (reverse: boolean) => {
+  const idx = TABS.findIndex((t) => t.key === launcher$.tab.peek());
+  const next = reverse ? (idx - 1 + TABS.length) % TABS.length : (idx + 1) % TABS.length;
+  launcher$.tab.set(TABS[next].key);
+};
 
 export const setSelectedValue = (selectedValue: string) =>
-  useLauncherStore.setState({ selectedValue });
+  launcher$.selectedValue.set(selectedValue);
 
-export const resetLauncher = () =>
-  useLauncherStore.setState({ query: "", tab: "all", selectedValue: "" });
+export const resetLauncher = () => {
+  clearTimeout(debounceTimer);
+  launcher$.assign({ rawQuery: "", query: "", tab: "all", selectedValue: "" });
+};

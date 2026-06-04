@@ -3,12 +3,9 @@ import { Kbd } from "@/components/ui/kbd";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Settings01Icon, PinIcon, PinOffIcon, Download01Icon } from "@hugeicons/core-free-icons";
 import { invoke } from "@tauri-apps/api/core";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type Update } from "@tauri-apps/plugin-updater";
-import { checkForUpdate } from "@/services/updater";
-
-const ONE_HOUR_MS = 60 * 60 * 1000;
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
+import { use$ } from "@legendapp/state/react";
+import { pinned$, togglePin } from "@/services/pin";
+import { updateCheck$ } from "@/services/updater";
 
 function Hint({ keys, label }: { keys: React.ReactNode; label: string }) {
   return (
@@ -20,17 +17,7 @@ function Hint({ keys, label }: { keys: React.ReactNode; label: string }) {
 }
 
 function UpdateBadge() {
-  const { data: update } = useQuery<Update | null>({
-    queryKey: ["update-check"],
-    queryFn: async () => {
-      if (import.meta.env.DEV) {
-        return { version: "dev" } as Update;
-      }
-      return await checkForUpdate();
-    },
-    staleTime: FIVE_MINUTES_MS,
-    refetchInterval: ONE_HOUR_MS,
-  });
+  const update = use$(updateCheck$);
 
   if (!update) return null;
 
@@ -49,17 +36,7 @@ function UpdateBadge() {
 }
 
 export function SearchFooter() {
-  const queryClient = useQueryClient();
-  const { data: pinned = false } = useQuery({
-    queryKey: ["pinned"],
-    queryFn: () => invoke<boolean>("is_pinned"),
-  });
-
-  const handleTogglePin = () => {
-    invoke<boolean>("toggle_pin").then((newValue) => {
-      queryClient.setQueryData(["pinned"], newValue);
-    });
-  };
+  const pinned = use$(pinned$);
 
   return (
     <div className="flex items-center border-t px-2 py-1">
@@ -82,7 +59,7 @@ export function SearchFooter() {
           variant={pinned ? "outline" : "ghost"}
           size="icon-sm"
           title={pinned ? "Unpin (disable drag)" : "Pin (enable drag)"}
-          onClick={handleTogglePin}
+          onClick={() => togglePin()}
         >
           <HugeiconsIcon
             icon={pinned ? PinIcon : PinOffIcon}

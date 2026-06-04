@@ -38,7 +38,7 @@ function DriveRow({ drive }: { drive: DriveInfo }) {
 }
 
 export function DrivesWidget() {
-  const { data } = useSystemInfo();
+  const data = useSystemInfo();
   if (!data) return null;
   const color = colorForId("drives");
   return (

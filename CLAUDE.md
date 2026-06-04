@@ -1,13 +1,24 @@
 # Project Rules
 
+## State & data: use Legend-State
+
+All client state and data fetching go through **Legend-State v3** (`@legendapp/state`). Do **not** add Zustand, TanStack Query, Redux, or other state/data libraries — they were removed and must not return.
+
+- **Stores / shared state** — module-level `observable()` singletons (see `src/stores/`). Mutate with `.set()` / `.assign()`; expose named action functions rather than mutating from components.
+- **Data fetching** — `synced({ get, set, subscribe })` from `@legendapp/state/sync`, wrapped in `observable()` (see `src/services/`). `get` wraps the `invoke()`/`fetch` call and re-runs when observables it reads change; the observable itself is the cache (previous value is kept during a refetch).
+- **Loading / error / refetch** — `syncState(obs$)` for `.isGetting` / `.isLoaded` / `.error` / `.sync()`. Polling and window-focus refetch live in `subscribe` via the `poll` / `onFocus` helpers in `src/lib/sync-helpers.ts` — not in components.
+- **Derived state** — prefer a **computed observable** (`observable(() => ...)`) over `useMemo` when the inputs are observables; it computes outside React and only re-renders consumers of the values they read.
+- **Reading in components** — `use$(obs$)` (a.k.a. `useValue`) from `@legendapp/state/react`; read without subscribing via `.peek()`.
+- **Cross-observable side effects** — `observe()` at module scope (setting an observable from there needs no `useEffect`/microtask hop). Persisted state uses `syncObservable` + `ObservablePersistLocalStorage`.
+
 ## No useEffect
 
 Do not use `useEffect` in this codebase. Instead:
 
-- **Data fetching** — use TanStack Query (`useQuery`, `useMutation`)
-- **Derived state** — use `useMemo` or compute inline during render
+- **Data fetching** — Legend-State `synced` observables read via `use$` (see "State & data" above)
+- **Derived state** — a computed `observable(() => ...)`, or `useMemo` / compute inline during render
 - **Event listeners** — use ref callbacks or event handler props
-- **Subscriptions** — use `useSyncExternalStore` or TanStack Query subscriptions
+- **Subscriptions** — `use$` on an observable, or `synced`'s `subscribe` for the source side
 
 ## One component per file
 

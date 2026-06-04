@@ -1,82 +1,22 @@
-import { useCallback, useMemo, useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
+import { use$ } from "@legendapp/state/react";
+import { syncState } from "@legendapp/state";
 import { CommandList, CommandEmpty, CommandGroup } from "@/components/ui/command";
-import { searchItems, activateItem } from "@/services/search";
-import {
-  getInstantAnswer,
-  getAsyncInstantAnswer,
-  getInstantAnswerHints,
-} from "@/lib/instant-answer";
-import { useLauncherStore, setQuery, setSelectedValue } from "@/stores/launcher";
+import { activateItem } from "@/services/search";
+import { launcher$, setQuery } from "@/stores/launcher";
+import { searchResults$, instantAnswers$, hints$ } from "@/stores/search";
 import { setListElement, focusInput } from "@/lib/launcher-lifecycle";
-import { useRefreshOnFocus } from "@/lib/use-refresh-on-focus";
 import { InstantAnswerGroup } from "./InstantAnswerGroup";
 import { HintGroup } from "./HintGroup";
 import { ResultItem } from "./ResultItem";
-import { useDebounce } from "@uidotdev/usehooks";
 
 export function ResultList() {
-  const q = useLauncherStore((s) => s.query);
-  const tab = useLauncherStore((s) => s.tab);
-  const selectedValue = useLauncherStore((s) => s.selectedValue);
-
-  const query = useDebounce(q, 100);
-
-  const {
-    data: results = [],
-    isFetching: isSearching,
-    refetch,
-  } = useQuery({
-    queryKey: ["search", query, tab],
-    queryFn: () => searchItems(query, tab),
-    placeholderData: keepPreviousData,
-  });
-
-  useRefreshOnFocus(refetch);
-
-  const syncAnswers = useMemo(() => getInstantAnswer(query), [query]);
-
-  const { data: asyncAnswers } = useQuery({
-    queryKey: ["instant-answer-async", query],
-    queryFn: () => getAsyncInstantAnswer(query),
-    enabled: !syncAnswers && query.trim().length > 0,
-  });
-
-  const instantAnswers = useMemo(
-    () => syncAnswers ?? asyncAnswers ?? [],
-    [syncAnswers, asyncAnswers],
-  );
-
-  const hints = useMemo(
-    () => (instantAnswers.length === 0 ? getInstantAnswerHints(query) : []),
-    [query, instantAnswers.length],
-  );
-
-  const firstItemId = useMemo(() => {
-    if (instantAnswers.length > 0) return "__instant_0__";
-    if (hints.length > 0) return "__hint_0__";
-    return results[0]?.id ?? "";
-  }, [instantAnswers.length, hints.length, results]);
-
-  const validIds = useMemo(() => {
-    const set = new Set<string>();
-    instantAnswers.forEach((_, idx) => set.add(`__instant_${idx}__`));
-    hints.forEach((_, idx) => set.add(`__hint_${idx}__`));
-    results.forEach((r) => set.add(r.id));
-    return set;
-  }, [instantAnswers, hints, results]);
-
-  const [prevFirstId, setPrevFirstId] = useState(firstItemId);
-  if (prevFirstId !== firstItemId) {
-    setPrevFirstId(firstItemId);
-    const wasOnPrevFirst = selectedValue === prevFirstId;
-    const isDangling = selectedValue !== "" && !validIds.has(selectedValue);
-    if (firstItemId && (wasOnPrevFirst || isDangling || selectedValue === "")) {
-      queueMicrotask(() => setSelectedValue(firstItemId));
-    }
-  } else if (firstItemId && selectedValue !== "" && !validIds.has(selectedValue)) {
-    queueMicrotask(() => setSelectedValue(firstItemId));
-  }
+  const query = use$(launcher$.query);
+  const tab = use$(launcher$.tab);
+  const results = use$(searchResults$);
+  const instantAnswers = use$(instantAnswers$);
+  const hints = use$(hints$);
+  const isSearching = use$(() => syncState(searchResults$).isGetting.get() ?? false);
 
   const handleSelect = useCallback((id: string) => {
     activateItem(id);

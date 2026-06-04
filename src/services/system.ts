@@ -1,5 +1,8 @@
+import { observable } from "@legendapp/state";
+import { synced } from "@legendapp/state/sync";
+import { use$ } from "@legendapp/state/react";
 import { invoke } from "@tauri-apps/api/core";
-import { useQuery } from "@tanstack/react-query";
+import { poll } from "@/lib/sync-helpers";
 
 export interface DriveInfo {
   name: string;
@@ -50,32 +53,38 @@ export async function getSystemInfo(): Promise<SystemInfo> {
   return info;
 }
 
-export function useSystemInfo() {
-  return useQuery({
-    queryKey: ["system-info"],
-    queryFn: getSystemInfo,
-    refetchInterval: 1000,
-    refetchIntervalInBackground: true,
-    refetchOnWindowFocus: false,
-  });
+/** Live system stats; polls once per second (even while the launcher is hidden). */
+const systemInfo$ = observable(
+  synced<SystemInfo>({
+    get: getSystemInfo,
+    subscribe: ({ refresh }) => poll(refresh, 1000),
+  }),
+);
+
+export function useSystemInfo(): SystemInfo | undefined {
+  return use$(systemInfo$);
 }
 
 // ── System dark mode (1×1 widget toggle) ──
 
-/** Whether Windows is currently in dark mode (system + apps preference). */
-export function getSystemDarkMode(): Promise<boolean> {
+function getSystemDarkMode(): Promise<boolean> {
   return invoke<boolean>("get_system_dark_mode");
 }
 
-export function setSystemDarkMode(dark: boolean): Promise<void> {
+function setSystemDarkMode(dark: boolean): Promise<void> {
   return invoke("set_system_dark_mode", { dark });
 }
 
-export function useSystemDarkMode() {
-  return useQuery({
-    queryKey: ["system-dark-mode"],
-    queryFn: getSystemDarkMode,
-    // Picks up changes made elsewhere (Settings app) without hammering the registry.
-    refetchInterval: 4000,
-  });
-}
+/**
+ * Live Windows dark-mode flag. Polls every 4s to pick up changes made elsewhere
+ * (e.g. the Settings app) without hammering the registry, and writes back to the
+ * OS when set.
+ */
+export const systemDarkMode$ = observable(
+  synced<boolean>({
+    get: getSystemDarkMode,
+    set: ({ value }) => setSystemDarkMode(value),
+    subscribe: ({ refresh }) => poll(refresh, 4000),
+    initial: false,
+  }),
+);

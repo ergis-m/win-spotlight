@@ -20,10 +20,7 @@ export function ResultItem({ item, onSelect }: ResultItemProps) {
     <CommandItem
       key={item.id}
       value={item.id}
-      onSelect={(id) => {
-        console.log(id);
-        onSelect(id);
-      }}
+      onSelect={onSelect}
       className="[&>svg.ml-auto]:hidden"
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { use$ } from "@legendapp/state/react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,92 +19,77 @@ import {
   Refresh01Icon,
 } from "@hugeicons/core-free-icons";
 import {
-  getFileSearchSettings,
-  setFileSearchSettings,
-  getFileIndexStatus,
-  rebuildFileIndex,
-  type FileSearchSettings,
+  fileSearchSettings$,
+  fileIndexStatus$,
+  updateFileSearchSettings,
+  rebuildIndex,
 } from "@/services/settings";
 
 export function IndexingPage() {
-  const queryClient = useQueryClient();
   const [newExclude, setNewExclude] = useState("");
   const [newDir, setNewDir] = useState("");
+  const [rebuilding, setRebuilding] = useState(false);
   const excludeInputRef = useRef<HTMLInputElement>(null);
   const dirInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: settings } = useQuery({
-    queryKey: ["file-search-settings"],
-    queryFn: getFileSearchSettings,
-  });
+  const settings = use$(fileSearchSettings$);
+  const status = use$(fileIndexStatus$);
 
-  const { data: status } = useQuery({
-    queryKey: ["file-index-status"],
-    queryFn: getFileIndexStatus,
-    refetchInterval: 3000,
-  });
-
-  const updateSettings = useMutation({
-    mutationFn: (updated: FileSearchSettings) => setFileSearchSettings(updated),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["file-search-settings"] });
-      queryClient.invalidateQueries({ queryKey: ["file-index-status"] });
-    },
-  });
-
-  const rebuildMutation = useMutation({
-    mutationFn: rebuildFileIndex,
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["file-index-status"] });
-    },
-  });
+  const handleRebuild = useCallback(async () => {
+    setRebuilding(true);
+    try {
+      await rebuildIndex();
+    } finally {
+      setRebuilding(false);
+    }
+  }, []);
 
   const addDirectory = useCallback(() => {
     if (!settings || !newDir.trim()) return;
     const path = newDir.trim();
     if (!settings.directories.includes(path)) {
-      updateSettings.mutate({
+      void updateFileSearchSettings({
         ...settings,
         directories: [...settings.directories, path],
       });
     }
     setNewDir("");
     dirInputRef.current?.focus();
-  }, [settings, newDir, updateSettings]);
+  }, [settings, newDir]);
 
   const removeDirectory = useCallback(
     (dir: string) => {
       if (!settings) return;
-      updateSettings.mutate({
+      void updateFileSearchSettings({
         ...settings,
         directories: settings.directories.filter((d) => d !== dir),
       });
     },
-    [settings, updateSettings],
+    [settings],
   );
 
   const addExclude = useCallback(() => {
     if (!settings || !newExclude.trim()) return;
     const name = newExclude.trim();
     if (!settings.excluded_dirs.includes(name)) {
-      updateSettings.mutate({
+      void updateFileSearchSettings({
         ...settings,
         excluded_dirs: [...settings.excluded_dirs, name],
       });
     }
     setNewExclude("");
     excludeInputRef.current?.focus();
-  }, [settings, newExclude, updateSettings]);
+  }, [settings, newExclude]);
 
   const removeExclude = useCallback(
     (name: string) => {
       if (!settings) return;
-      updateSettings.mutate({
+      void updateFileSearchSettings({
         ...settings,
         excluded_dirs: settings.excluded_dirs.filter((d) => d !== name),
       });
     },
-    [settings, updateSettings],
+    [settings],
   );
 
   if (!settings) return null;
@@ -123,7 +108,7 @@ export function IndexingPage() {
         <ItemActions>
           <Switch
             checked={settings.enabled}
-            onCheckedChange={(enabled) => updateSettings.mutate({ ...settings, enabled })}
+            onCheckedChange={(enabled) => void updateFileSearchSettings({ ...settings, enabled })}
           />
         </ItemActions>
       </Item>
@@ -236,7 +221,7 @@ export function IndexingPage() {
               <Select
                 value={String(settings.max_depth)}
                 onValueChange={(v) =>
-                  updateSettings.mutate({
+                  void updateFileSearchSettings({
                     ...settings,
                     max_depth: parseInt(v),
                   })
@@ -270,13 +255,13 @@ export function IndexingPage() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5 text-xs"
-                onClick={() => rebuildMutation.mutate()}
-                disabled={rebuildMutation.isPending}
+                onClick={handleRebuild}
+                disabled={rebuilding}
               >
                 <HugeiconsIcon
                   icon={Refresh01Icon}
                   strokeWidth={2}
-                  className={`size-3 ${rebuildMutation.isPending ? "animate-spin" : ""}`}
+                  className={`size-3 ${rebuilding ? "animate-spin" : ""}`}
                 />
                 Rebuild
               </Button>

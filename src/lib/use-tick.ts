@@ -1,20 +1,30 @@
-import { useQuery } from "@tanstack/react-query";
+import { observable, type Observable } from "@legendapp/state";
+import { synced } from "@legendapp/state/sync";
+import { use$ } from "@legendapp/state/react";
+import { poll } from "@/lib/sync-helpers";
 
 /**
- * Returns `Date.now()` and refetches every `ms` to force a re-render. Used by
- * widgets that need to tick (clock, uptime). Project rule: no useEffect — this
- * leans on TanStack Query's interval to drive the cadence. `initialData` seeds
- * the first value so the impure `Date.now()` stays out of the render body.
+ * Returns `Date.now()` and re-renders every `ms` so widgets that tick (clock,
+ * uptime) stay current. Project rule: no useEffect — the cadence comes from a
+ * synced observable's interval subscription, one per distinct `ms`.
  */
+const ticks = new Map<number, Observable<number>>();
+
+function tickFor(ms: number): Observable<number> {
+  let tick$ = ticks.get(ms);
+  if (!tick$) {
+    tick$ = observable(
+      synced<number>({
+        get: () => Date.now(),
+        subscribe: ({ refresh }) => poll(refresh, ms),
+        initial: Date.now(),
+      }),
+    );
+    ticks.set(ms, tick$);
+  }
+  return tick$;
+}
+
 export function useTick(ms: number): number {
-  const { data } = useQuery({
-    queryKey: ["tick", ms],
-    queryFn: () => Date.now(),
-    initialData: () => Date.now(),
-    refetchInterval: ms,
-    refetchIntervalInBackground: false,
-    staleTime: 0,
-    gcTime: 0,
-  });
-  return data;
+  return use$(tickFor(ms));
 }

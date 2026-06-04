@@ -1,26 +1,16 @@
 import { useState, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { use$ } from "@legendapp/state/react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
 import { Kbd } from "@/components/ui/kbd";
-import { getVersion } from "@tauri-apps/api/app";
-import { getSettings, setAutostart, setShowBrowserTabs } from "@/services/settings";
+import { settings$, updateAutostart, updateShowBrowserTabs } from "@/services/settings";
+import { appVersion$ } from "@/services/app-info";
 import { type UpdateStatus, checkForUpdate, downloadAndInstall } from "@/services/updater";
 
 export function GeneralPage() {
-  const queryClient = useQueryClient();
-
-  const { data: settings } = useQuery({
-    queryKey: ["settings"],
-    queryFn: getSettings,
-  });
-
-  const { data: appVersion } = useQuery({
-    queryKey: ["app-version"],
-    queryFn: getVersion,
-    staleTime: Infinity,
-  });
+  const settings = use$(settings$);
+  const appVersion = use$(appVersion$);
 
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ state: "idle" });
 
@@ -51,28 +41,6 @@ export function GeneralPage() {
       setUpdateStatus({ state: "error", message: String(e) });
     }
   }, [updateStatus]);
-
-  const autostartMutation = useMutation({
-    mutationFn: (enabled: boolean) => {
-      console.log("[autostart] mutating:", enabled);
-      return setAutostart(enabled);
-    },
-    onSuccess: () => {
-      console.log("[autostart] success");
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
-    },
-    onError: (err) => {
-      console.error("[autostart] error:", err);
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
-    },
-  });
-
-  const browserTabsMutation = useMutation({
-    mutationFn: (enabled: boolean) => setShowBrowserTabs(enabled),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
-    },
-  });
 
   if (!settings) return null;
 
@@ -120,11 +88,7 @@ export function GeneralPage() {
           <ItemDescription>Start Win Spotlight when you sign in to Windows</ItemDescription>
         </ItemContent>
         <ItemActions>
-          <Switch
-            checked={autostartMutation.isPending ? autostartMutation.variables : settings.autostart}
-            disabled={autostartMutation.isPending}
-            onCheckedChange={(v) => autostartMutation.mutate(v)}
-          />
+          <Switch checked={settings.autostart} onCheckedChange={updateAutostart} />
         </ItemActions>
       </Item>
 
@@ -136,15 +100,7 @@ export function GeneralPage() {
           </ItemDescription>
         </ItemContent>
         <ItemActions>
-          <Switch
-            checked={
-              browserTabsMutation.isPending
-                ? browserTabsMutation.variables
-                : settings.show_browser_tabs
-            }
-            disabled={browserTabsMutation.isPending}
-            onCheckedChange={(v) => browserTabsMutation.mutate(v)}
-          />
+          <Switch checked={settings.show_browser_tabs} onCheckedChange={updateShowBrowserTabs} />
         </ItemActions>
       </Item>
 

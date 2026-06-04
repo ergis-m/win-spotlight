@@ -1,4 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { observable, syncState, type Observable } from "@legendapp/state";
+import { synced } from "@legendapp/state/sync";
+import { use$ } from "@legendapp/state/react";
+import { poll } from "@/lib/sync-helpers";
 
 export type TempUnit = "celsius" | "fahrenheit";
 
@@ -145,15 +148,31 @@ export async function getWeather(unitPref: UnitPreference = "auto"): Promise<Wea
   };
 }
 
+const TEN_MINUTES_MS = 10 * 60_000;
+
+// Conditions move slowly; one cached observable per unit preference, refreshed
+// every 10 min. The cache keeps the last value so re-mounting a widget — or
+// several widgets sharing a unit — never refetches.
+const weatherByUnit = new Map<UnitPreference, Observable<Weather>>();
+
+function weatherFor(unitPref: UnitPreference): Observable<Weather> {
+  let weather$ = weatherByUnit.get(unitPref);
+  if (!weather$) {
+    weather$ = observable(
+      synced<Weather>({
+        get: () => getWeather(unitPref),
+        subscribe: ({ refresh }) => poll(refresh, TEN_MINUTES_MS),
+        retry: { times: 1 },
+      }),
+    );
+    weatherByUnit.set(unitPref, weather$);
+  }
+  return weather$;
+}
+
 export function useWeather(unitPref: UnitPreference = "auto") {
-  return useQuery({
-    queryKey: ["weather", unitPref],
-    queryFn: () => getWeather(unitPref),
-    // Conditions move slowly; refresh every 10 min and keep last value fresh
-    // enough that re-mounting the widget doesn't refetch immediately.
-    staleTime: 10 * 60_000,
-    refetchInterval: 10 * 60_000,
-    refetchOnWindowFocus: false,
-    retry: 1,
-  });
+  const weather$ = weatherFor(unitPref);
+  const data = use$(weather$);
+  const isError = use$(() => syncState(weather$).error.get() !== undefined);
+  return { data, isError };
 }

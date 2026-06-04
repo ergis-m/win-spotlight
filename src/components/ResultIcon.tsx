@@ -12,9 +12,9 @@ import {
   TerminalIcon,
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
-import { useQuery } from "@tanstack/react-query";
+import { use$ } from "@legendapp/state/react";
 import type { SearchResult } from "@/services/search";
-import { getFileThumbnail } from "@/services/search";
+import { fileThumbnail$ } from "@/services/search";
 
 const EXT_ICON_MAP: Record<string, IconSvgElement> = {
   // Documents
@@ -132,13 +132,7 @@ function FileThumbnailIcon({ item }: { item: SearchResult }) {
   const ext = getExtension(item.title);
   const canThumbnail = THUMBNAIL_EXTENSIONS.has(ext);
 
-  const { data: thumbnail } = useQuery({
-    queryKey: ["file-thumbnail", filePath],
-    queryFn: () => getFileThumbnail(filePath),
-    enabled: canThumbnail,
-    staleTime: Infinity,
-    gcTime: 5 * 60 * 1000,
-  });
+  const thumbnail = use$(() => (canThumbnail ? fileThumbnail$(filePath).get() : null));
 
   if (thumbnail) {
     return <img className="size-6 object-cover rounded-md" src={thumbnail} alt="" />;

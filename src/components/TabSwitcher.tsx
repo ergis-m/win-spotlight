@@ -1,7 +1,8 @@
-import { useLauncherStore, TABS, setTab } from "@/stores/launcher";
+import { use$ } from "@legendapp/state/react";
+import { launcher$, TABS, setTab } from "@/stores/launcher";
 
 export function TabSwitcher({ onSelect }: { onSelect?: () => void }) {
-  const tab = useLauncherStore((s) => s.tab);
+  const tab = use$(launcher$.tab);
   return (
     <div className="flex items-center gap-0.5">
       {TABS.map((t) => (

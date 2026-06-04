@@ -43,7 +43,7 @@ function Legend({ label, value, color }: { label: string; value: string; color: 
  * chart, with a live legend above and a metadata footer below.
  */
 export function SystemWidget() {
-  const { data } = useSystemInfo();
+  const data = useSystemInfo();
   if (!data) return null;
 
   const cpuColor = colorForId("cpu");

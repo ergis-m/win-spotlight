@@ -1,3 +1,4 @@
+import { observable } from "@legendapp/state";
 import { invoke } from "@tauri-apps/api/core";
 
 export type Theme = "system" | "light" | "dark";
@@ -9,11 +10,12 @@ function applyClass(isDark: boolean) {
   document.documentElement.classList.toggle("light", !isDark);
 }
 
-let currentTheme: Theme = "system";
+/** The active theme preference, backed by an observable so the UI can react to it. */
+export const theme$ = observable<Theme>("system");
 let mediaListener: (() => void) | null = null;
 
 export function applyTheme(theme: Theme) {
-  currentTheme = theme;
+  theme$.set(theme);
 
   // Clean up previous system listener
   if (mediaListener) {
@@ -31,7 +33,7 @@ export function applyTheme(theme: Theme) {
 }
 
 export function getAppliedTheme(): Theme {
-  return currentTheme;
+  return theme$.peek();
 }
 
 export type LauncherSize = "compact" | "normal" | "fancy";

@@ -1,4 +1,8 @@
+import { observable, syncState } from "@legendapp/state";
+import { synced } from "@legendapp/state/sync";
 import { invoke } from "@tauri-apps/api/core";
+import { onFocus, poll } from "@/lib/sync-helpers";
+import { applyTheme, type Theme } from "@/lib/theme";
 import type { WidgetsConfig } from "@/lib/widgets/types";
 
 export type { WidgetLayoutEntry, WidgetsConfig } from "@/lib/widgets/types";
@@ -35,6 +39,55 @@ export function setWidgetsConfig(widgets: WidgetsConfig): Promise<void> {
   return invoke("set_widgets_config", { widgets });
 }
 
+/** App settings, shared across every screen. Refetches when the window regains focus. */
+export const settings$ = observable(
+  synced<AppSettings>({
+    get: getSettings,
+    subscribe: ({ refresh }) => onFocus(refresh),
+  }),
+);
+
+// Each setter updates the observable optimistically (so every screen reflects the
+// change instantly) then writes to the backend, re-pulling truth if the write fails.
+async function commit(write: () => Promise<void>) {
+  try {
+    await write();
+  } catch {
+    void syncState(settings$).sync();
+  }
+}
+
+export async function updateTheme(theme: string) {
+  applyTheme(theme as Theme);
+  settings$.theme.set(theme);
+  await commit(() => setTheme(theme));
+}
+
+export async function updateLauncherSize(size: string) {
+  settings$.launcher_size.set(size);
+  await commit(() => setLauncherSize(size));
+}
+
+export async function updateShowBrowserTabs(enabled: boolean) {
+  settings$.show_browser_tabs.set(enabled);
+  await commit(() => setShowBrowserTabs(enabled));
+}
+
+export async function updateWidgets(widgets: WidgetsConfig) {
+  settings$.widgets.set(widgets);
+  await commit(() => setWidgetsConfig(widgets));
+}
+
+export async function updateAutostart(enabled: boolean) {
+  settings$.autostart.set(enabled);
+  try {
+    await setAutostart(enabled);
+  } catch (err) {
+    console.error("[autostart] failed:", err);
+    void syncState(settings$).sync();
+  }
+}
+
 // ── File search settings ──
 
 export interface FileSearchSettings {
@@ -64,4 +117,35 @@ export function rebuildFileIndex(): Promise<void> {
 
 export function getFileIndexStatus(): Promise<FileIndexStatus> {
   return invoke<FileIndexStatus>("get_file_index_status");
+}
+
+export const fileSearchSettings$ = observable(
+  synced<FileSearchSettings>({
+    get: getFileSearchSettings,
+    subscribe: ({ refresh }) => onFocus(refresh),
+  }),
+);
+
+/** Index progress; polls every 3s while indexing runs. */
+export const fileIndexStatus$ = observable(
+  synced<FileIndexStatus>({
+    get: getFileIndexStatus,
+    subscribe: ({ refresh }) => poll(refresh, 3000),
+  }),
+);
+
+export async function updateFileSearchSettings(updated: FileSearchSettings) {
+  fileSearchSettings$.set(updated);
+  try {
+    await setFileSearchSettings(updated);
+  } catch {
+    void syncState(fileSearchSettings$).sync();
+  } finally {
+    void syncState(fileIndexStatus$).sync();
+  }
+}
+
+export async function rebuildIndex() {
+  await rebuildFileIndex();
+  void syncState(fileIndexStatus$).sync();
 }

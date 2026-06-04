@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   TABS,
-  useLauncherStore,
+  launcher$,
   setQuery,
   setTab,
   cycleTab,
@@ -13,9 +13,14 @@ beforeEach(() => {
   resetLauncher();
 });
 
-describe("useLauncherStore — initial state", () => {
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+describe("launcher$ — initial state", () => {
   it("starts empty on the 'all' tab", () => {
-    expect(useLauncherStore.getState()).toEqual({
+    expect(launcher$.peek()).toEqual({
+      rawQuery: "",
       query: "",
       tab: "all",
       selectedValue: "",
@@ -24,19 +29,26 @@ describe("useLauncherStore — initial state", () => {
 });
 
 describe("setQuery", () => {
-  it("updates query and clears selectedValue so cmdk highlights the first result", () => {
+  it("updates the input immediately and clears selectedValue so cmdk highlights the first result", () => {
     setSelectedValue("some-id");
     setQuery("foo");
-    const state = useLauncherStore.getState();
-    expect(state.query).toBe("foo");
-    expect(state.selectedValue).toBe("");
+    expect(launcher$.rawQuery.peek()).toBe("foo");
+    expect(launcher$.selectedValue.peek()).toBe("");
+  });
+
+  it("debounces the search query by 100ms", () => {
+    vi.useFakeTimers();
+    setQuery("foo");
+    expect(launcher$.query.peek()).toBe("");
+    vi.advanceTimersByTime(100);
+    expect(launcher$.query.peek()).toBe("foo");
   });
 });
 
 describe("setTab", () => {
   it("switches to the given tab", () => {
     setTab("files");
-    expect(useLauncherStore.getState().tab).toBe("files");
+    expect(launcher$.tab.peek()).toBe("files");
   });
 });
 
@@ -46,22 +58,22 @@ describe("cycleTab", () => {
     // Start on 'all' (index 0) → expect sequence of remaining tabs then wrap back.
     for (let i = 1; i < order.length; i++) {
       cycleTab(false);
-      expect(useLauncherStore.getState().tab).toBe(order[i]);
+      expect(launcher$.tab.peek()).toBe(order[i]);
     }
     cycleTab(false);
-    expect(useLauncherStore.getState().tab).toBe(order[0]);
+    expect(launcher$.tab.peek()).toBe(order[0]);
   });
 
   it("wraps backward past the first tab to the last", () => {
     cycleTab(true);
-    expect(useLauncherStore.getState().tab).toBe(TABS[TABS.length - 1].key);
+    expect(launcher$.tab.peek()).toBe(TABS[TABS.length - 1].key);
   });
 
   it("forward then reverse returns to the starting tab", () => {
-    const start = useLauncherStore.getState().tab;
+    const start = launcher$.tab.peek();
     cycleTab(false);
     cycleTab(true);
-    expect(useLauncherStore.getState().tab).toBe(start);
+    expect(launcher$.tab.peek()).toBe(start);
   });
 });
 
@@ -71,7 +83,8 @@ describe("resetLauncher", () => {
     setTab("media");
     setSelectedValue("xyz");
     resetLauncher();
-    expect(useLauncherStore.getState()).toEqual({
+    expect(launcher$.peek()).toEqual({
+      rawQuery: "",
       query: "",
       tab: "all",
       selectedValue: "",

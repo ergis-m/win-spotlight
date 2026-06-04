@@ -1,4 +1,5 @@
-import { useLauncherStore } from "@/stores/launcher";
+import { use$ } from "@legendapp/state/react";
+import { launcher$ } from "@/stores/launcher";
 import { motion } from "motion/react";
 import { useMemo } from "react";
 
@@ -12,7 +13,7 @@ const getElemetRect = (selector: string) => {
 };
 
 export const FocusRing = () => {
-  const selectedValue = useLauncherStore((s) => s.selectedValue);
+  const selectedValue = use$(launcher$.selectedValue);
 
   const defaultPos = getElemetRect('[data-slot="command-input-wrapper"]');
 

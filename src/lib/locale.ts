@@ -1,7 +1,10 @@
 /**
  * User locale preferences — auto-detected from browser/OS, overridable via settings.
- * Overrides are persisted in localStorage.
+ * Overrides are persisted in localStorage via a Legend-State observable.
  */
+import { observable } from "@legendapp/state";
+import { syncObservable } from "@legendapp/state/sync";
+import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
 
 // Country code → default currency
 const COUNTRY_CURRENCY: Record<string, string> = {
@@ -97,32 +100,28 @@ export type UserLocaleOverrides = {
 
 const STORAGE_KEY = "locale-overrides";
 
-function loadOverrides(): UserLocaleOverrides {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
+/**
+ * Persisted timezone/currency overrides — same localStorage key and JSON shape
+ * as before, so existing preferences carry over.
+ */
+export const localeOverrides$ = observable<UserLocaleOverrides>({});
+syncObservable(localeOverrides$, {
+  persist: { name: STORAGE_KEY, plugin: ObservablePersistLocalStorage },
+});
 
 export function saveOverrides(overrides: UserLocaleOverrides): void {
-  // Remove keys that are empty or match "auto"
+  // Keep only meaningful values (drop empty / "auto").
   const clean: UserLocaleOverrides = {};
   if (overrides.timezone && overrides.timezone !== "auto") clean.timezone = overrides.timezone;
   if (overrides.currency && overrides.currency !== "auto") clean.currency = overrides.currency;
 
-  if (Object.keys(clean).length === 0) {
-    localStorage.removeItem(STORAGE_KEY);
-  } else {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
-  }
+  localeOverrides$.set(clean);
   // Bust cache
   cached = null;
 }
 
 export function getOverrides(): UserLocaleOverrides {
-  return loadOverrides();
+  return localeOverrides$.peek();
 }
 
 /** Detect the system defaults (ignoring overrides). */
@@ -150,7 +149,7 @@ export function getUserLocale(): UserLocale {
   if (cached) return cached;
 
   const sys = getSystemDefaults();
-  const overrides = loadOverrides();
+  const overrides = localeOverrides$.peek();
 
   const timezone = overrides.timezone || sys.timezone;
   const timezoneShort = overrides.timezone

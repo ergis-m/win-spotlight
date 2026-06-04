@@ -1,16 +1,12 @@
 import { useState, useCallback } from "react";
+import { use$ } from "@legendapp/state/react";
 import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
-import { getVersion } from "@tauri-apps/api/app";
-import { useQuery } from "@tanstack/react-query";
+import { appVersion$ } from "@/services/app-info";
 import { type UpdateStatus, checkForUpdate, downloadAndInstall } from "@/services/updater";
 
 export function AboutPage() {
-  const { data: appVersion } = useQuery({
-    queryKey: ["app-version"],
-    queryFn: getVersion,
-    staleTime: Infinity,
-  });
+  const appVersion = use$(appVersion$);
 
   const [status, setStatus] = useState<UpdateStatus>({ state: "idle" });
 

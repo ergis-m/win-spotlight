@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { use$ } from "@legendapp/state/react";
 import {
   Select,
   SelectContent,
@@ -7,33 +7,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/ui/item";
-import { applyTheme, type Theme } from "@/lib/theme";
-import { getSettings, setTheme, setLauncherSize } from "@/services/settings";
+import { settings$, updateTheme, updateLauncherSize } from "@/services/settings";
 
 export function AppearancePage() {
-  const queryClient = useQueryClient();
-
-  const { data: settings } = useQuery({
-    queryKey: ["settings"],
-    queryFn: getSettings,
-  });
-
-  const themeMutation = useMutation({
-    mutationFn: (theme: string) => setTheme(theme),
-    onMutate: (theme) => {
-      applyTheme(theme as Theme);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
-    },
-  });
-
-  const sizeMutation = useMutation({
-    mutationFn: (size: string) => setLauncherSize(size),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
-    },
-  });
+  const settings = use$(settings$);
 
   if (!settings) return null;
 
@@ -45,7 +22,7 @@ export function AppearancePage() {
           <ItemDescription>Select your preferred appearance</ItemDescription>
         </ItemContent>
         <ItemActions>
-          <Select value={settings.theme} onValueChange={(v) => themeMutation.mutate(v)}>
+          <Select value={settings.theme} onValueChange={updateTheme}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -63,7 +40,7 @@ export function AppearancePage() {
           <ItemDescription>Controls the size and density of the search launcher</ItemDescription>
         </ItemContent>
         <ItemActions>
-          <Select value={settings.launcher_size} onValueChange={(v) => sizeMutation.mutate(v)}>
+          <Select value={settings.launcher_size} onValueChange={updateLauncherSize}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>

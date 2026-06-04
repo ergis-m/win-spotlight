@@ -1,11 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { invoke } from "@tauri-apps/api/core";
+import { use$ } from "@legendapp/state/react";
+import { pinned$ } from "@/services/pin";
 
 export function PinHandle() {
-  const { data: pinned = false } = useQuery({
-    queryKey: ["pinned"],
-    queryFn: () => invoke<boolean>("is_pinned"),
-  });
+  const pinned = use$(pinned$);
   if (!pinned) return null;
   return (
     <div

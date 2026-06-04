@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { use$ } from "@legendapp/state/react";
 import { Plus, X, Settings, RotateCcw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -32,16 +32,15 @@ import {
   type WidgetsConfig,
 } from "@/lib/widgets/types";
 import { useGridEditor } from "@/lib/widgets/use-grid-editor";
-import { getSettings, setWidgetsConfig, type AppSettings } from "@/services/settings";
+import { settings$, updateWidgets, type AppSettings } from "@/services/settings";
 
 export function WidgetsPage() {
-  const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: getSettings });
+  const settings = use$(settings$);
   if (!settings) return null;
   return <WidgetsEditor initial={settings} />;
 }
 
 function WidgetsEditor({ initial }: { initial: AppSettings }) {
-  const queryClient = useQueryClient();
   const [config, setConfig] = useState<WidgetsConfig>(() => ({
     enabled: initial.widgets.enabled,
     layout: reconcileLayout(initial.widgets.layout),
@@ -49,18 +48,10 @@ function WidgetsEditor({ initial }: { initial: AppSettings }) {
   const [addOpen, setAddOpen] = useState(false);
   const [configId, setConfigId] = useState<string | null>(null);
 
-  const mutation = useMutation({
-    mutationFn: (next: WidgetsConfig) => setWidgetsConfig(next),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
-  });
-
-  const persist = useCallback(
-    (next: WidgetsConfig) => {
-      setConfig(next);
-      mutation.mutate(next);
-    },
-    [mutation],
-  );
+  const persist = useCallback((next: WidgetsConfig) => {
+    setConfig(next);
+    void updateWidgets(next);
+  }, []);
 
   const editor = useGridEditor({
     layout: config.layout,

@@ -1,22 +1,18 @@
 import { useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { use$ } from "@legendapp/state/react";
 import { Command, CommandEmpty } from "@/components/ui/command";
 import { hideWindow } from "@/services/search";
-import { getSettings } from "@/services/settings";
+import { settings$ } from "@/services/settings";
 import { SearchFooter } from "@/components/SearchFooter";
 import { PinHandle } from "@/components/PinHandle";
 import { LauncherInput } from "@/components/LauncherInput";
 import { ResultList } from "@/components/ResultList";
-import { useLauncherStore, cycleTab, setSelectedValue, resetLauncher } from "@/stores/launcher";
+import { launcher$, cycleTab, setSelectedValue, resetLauncher } from "@/stores/launcher";
 import { WidgetArea } from "@/layouts/WidgetArea";
-import { FocusRing } from "@/components/FocusRing";
 
 export function App() {
-  const selectedValue = useLauncherStore((s) => s.selectedValue);
-  const { data: settings } = useQuery({
-    queryKey: ["settings"],
-    queryFn: getSettings,
-  });
+  const selectedValue = use$(launcher$.selectedValue);
+  const settings = use$(settings$);
   const widgets = settings?.widgets;
   const showWidgetHome = widgets?.enabled && widgets.layout.length > 0;
 
@@ -51,7 +47,7 @@ export function App() {
           </CommandEmpty>
         )}
         <ResultList />
-        <FocusRing />
+        {/*<FocusRing />*/}
         <SearchFooter />
       </Command>
     </div>
