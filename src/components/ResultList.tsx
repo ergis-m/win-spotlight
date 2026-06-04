@@ -13,11 +13,14 @@ import { useRefreshOnFocus } from "@/lib/use-refresh-on-focus";
 import { InstantAnswerGroup } from "./InstantAnswerGroup";
 import { HintGroup } from "./HintGroup";
 import { ResultItem } from "./ResultItem";
+import { useDebounce } from "@uidotdev/usehooks";
 
 export function ResultList() {
-  const query = useLauncherStore((s) => s.query);
+  const q = useLauncherStore((s) => s.query);
   const tab = useLauncherStore((s) => s.tab);
   const selectedValue = useLauncherStore((s) => s.selectedValue);
+
+  const query = useDebounce(q, 100);
 
   const {
     data: results = [],

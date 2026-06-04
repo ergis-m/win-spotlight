@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Command } from "@/components/ui/command";
+import { Command, CommandEmpty } from "@/components/ui/command";
 import { hideWindow } from "@/services/search";
 import { getSettings } from "@/services/settings";
 import { SearchFooter } from "@/components/SearchFooter";
@@ -13,16 +13,12 @@ import { FocusRing } from "@/components/FocusRing";
 
 export function App() {
   const selectedValue = useLauncherStore((s) => s.selectedValue);
-  const query = useLauncherStore((s) => s.query);
   const { data: settings } = useQuery({
     queryKey: ["settings"],
     queryFn: getSettings,
   });
   const widgets = settings?.widgets;
-  // Empty input = home screen. Anything typed (even whitespace stripped) hands
-  // the area over to the result list.
-  const showHome = query.trim().length === 0;
-  const showWidgetHome = showHome && widgets?.enabled && widgets.layout.length > 0;
+  const showWidgetHome = widgets?.enabled && widgets.layout.length > 0;
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
@@ -47,13 +43,14 @@ export function App() {
         onKeyDown={handleKeyDown}
       >
         <LauncherInput />
-        {showWidgetHome ? (
-          <div className="flex-1 min-h-0 overflow-auto scrollbar-thin mt-1">
-            <WidgetArea layout={widgets.layout} />
-          </div>
-        ) : (
-          <ResultList />
+        {showWidgetHome && (
+          <CommandEmpty>
+            <div className="flex-1 min-h-0 overflow-auto scrollbar-thin mt-1">
+              <WidgetArea layout={widgets.layout} />
+            </div>
+          </CommandEmpty>
         )}
+        <ResultList />
         <FocusRing />
         <SearchFooter />
       </Command>
