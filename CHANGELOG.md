@@ -13,10 +13,12 @@ version and date, and its contents become the GitHub Release notes.
 
 ### Added
 
+- Animated focus ring that glides between search results as you move the selection.
 - Dark Mode widget: a 1×1 tile that toggles Windows between light and dark theme (the system theme, not just the app).
 - Setting to show or hide open browser tabs as individual search results (General settings). When off, the browser window is shown instead.
 
 ### Changed
+- Rebuilt state and data-flow for the launcher to use a single, reactive store for all state.
 
 ### Fixed
 

@@ -1,5 +1,6 @@
 import { CommandItem } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
+import { FocusRing } from "./FocusRing";
 import { ResultIcon } from "./ResultIcon";
 import type { SearchResult } from "@/services/search";
 
@@ -23,6 +24,7 @@ export function ResultItem({ item, onSelect }: ResultItemProps) {
       onSelect={onSelect}
       className="[&>svg.ml-auto]:hidden"
     >
+      <FocusRing value={item.id} />
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <ResultIcon item={item} />
         <div className="min-w-0 flex-1 gap-2 flex-row flex items-start">

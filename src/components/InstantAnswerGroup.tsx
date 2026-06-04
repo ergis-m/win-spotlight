@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
+import { FocusRing } from "./FocusRing";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CalculatorIcon,
@@ -75,6 +76,7 @@ export function InstantAnswerGroup({ answers }: InstantAnswerGroupProps) {
           onSelect={() => copyResult(idx)}
           className="[&>svg.ml-auto]:hidden"
         >
+          <FocusRing value={`__instant_${idx}__`} />
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {answer.color ? (
               <span

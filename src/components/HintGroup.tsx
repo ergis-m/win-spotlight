@@ -1,4 +1,5 @@
 import { CommandGroup, CommandItem } from "@/components/ui/command";
+import { FocusRing } from "./FocusRing";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CalculatorIcon,
@@ -40,6 +41,7 @@ export function HintGroup({ hints, onSelect }: HintGroupProps) {
           onSelect={() => onSelect(hint.example)}
           className="[&>svg.ml-auto]:hidden"
         >
+          <FocusRing value={`__hint_${idx}__`} />
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span
               className={`flex size-8 items-center justify-center rounded-lg ${ANSWER_ACCENT[hint.type]}`}

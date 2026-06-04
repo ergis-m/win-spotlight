@@ -47,7 +47,6 @@ export function App() {
           </CommandEmpty>
         )}
         <ResultList />
-        {/*<FocusRing />*/}
         <SearchFooter />
       </Command>
     </div>
