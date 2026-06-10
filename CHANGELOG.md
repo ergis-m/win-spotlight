@@ -15,6 +15,9 @@ version and date, and its contents become the GitHub Release notes.
 
 ### Changed
 
+- The launcher window now sizes itself to its content: with an empty input it shows just the search bar (or your widgets, if configured), and springs open to fit results as you type.
+- Bigger search bar: taller input with larger text and icon, scaled per launcher size (compact / normal / fancy).
+
 ### Fixed
 
 ## [0.5.0] - 2026-06-10

@@ -65,15 +65,15 @@ function CommandInput({
   children?: React.ReactNode;
 }) {
   return (
-    <div data-slot="command-input-wrapper" className="p-1 pb-0">
-      <InputGroup className="h-9 rounded-sm bg-input/50 frosted-backdrop ring-2 ring-border/50">
+    <div data-slot="command-input-wrapper" className="shrink-0 p-1 pb-0">
+      <InputGroup className="h-13">
         <InputGroupAddon>
-          <HugeiconsIcon icon={SearchIcon} strokeWidth={2} className="size-4 shrink-0 opacity-50" />
+          <HugeiconsIcon icon={SearchIcon} strokeWidth={2} className="size-5 shrink-0 opacity-50" />
         </InputGroupAddon>
         <CommandPrimitive.Input
           data-slot="command-input"
           className={cn(
-            "w-full text-sm! outline-hidden placeholder:text-sm! disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full text-lg outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
             className,
           )}
           {...props}

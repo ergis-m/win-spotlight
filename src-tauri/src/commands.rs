@@ -118,6 +118,13 @@ pub fn hide_window(app: AppHandle) {
     }
 }
 
+/// Called by the frontend whenever the launcher's content height changes;
+/// spring-animates the window (and its acrylic backdrop) to match.
+#[tauri::command]
+pub fn set_launcher_height(height: f64, app: AppHandle) {
+    crate::window::animate_height(&app, height.max(16.0));
+}
+
 #[tauri::command]
 pub fn open_settings(app: AppHandle) {
     crate::window::show_settings_window(&app);
@@ -217,8 +224,14 @@ pub fn set_launcher_size(
     manager.inner.lock().unwrap().launcher_size = s;
     manager.save();
     if let Some(win) = app.get_webview_window("main") {
-        let _ = win.set_size(tauri::Size::Logical(tauri::LogicalSize::new(w, h)));
-        let _ = win.center();
+        // Only the width applies directly — height is content-driven and the
+        // frontend re-reports it after the size change; just clamp to the new max.
+        let scale = win.scale_factor().unwrap_or(1.0);
+        let cur_h = win
+            .outer_size()
+            .map(|sz| sz.height as f64 / scale)
+            .unwrap_or(h);
+        let _ = win.set_size(tauri::Size::Logical(tauri::LogicalSize::new(w, cur_h.min(h))));
     }
     Ok(())
 }

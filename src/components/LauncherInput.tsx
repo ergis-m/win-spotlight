@@ -14,7 +14,6 @@ export function LauncherInput() {
     <CommandInput
       ref={setInputElement}
       placeholder={placeholder}
-      className="text-xs"
       value={rawQuery}
       onValueChange={(v) => {
         setQuery(v);

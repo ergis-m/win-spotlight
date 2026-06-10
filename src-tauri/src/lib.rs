@@ -68,6 +68,7 @@ pub fn run() {
             app.manage(index);
             app.manage(usage::UsageTracker::new());
             app.manage(window::PinState::new());
+            app.manage(window::HeightAnimator::new());
             app.manage(steam::SteamIndex::new());
             app.manage(icon_cache::IconCache::new());
             app.manage(system_info::SystemMonitor::new());
@@ -155,6 +156,7 @@ pub fn run() {
             commands::get_app_icon,
             commands::activate_item,
             commands::hide_window,
+            commands::set_launcher_height,
             commands::open_settings,
             commands::get_settings,
             commands::set_autostart,

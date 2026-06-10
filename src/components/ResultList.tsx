@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { use$ } from "@legendapp/state/react";
-import { syncState } from "@legendapp/state";
 import { CommandList, CommandEmpty, CommandGroup } from "@/components/ui/command";
 import { activateItem } from "@/services/search";
 import { launcher$, setQuery } from "@/stores/launcher";
@@ -16,7 +15,6 @@ export function ResultList() {
   const results = use$(searchResults$);
   const instantAnswers = use$(instantAnswers$);
   const hints = use$(hints$);
-  const isSearching = use$(() => syncState(searchResults$).isGetting.get() ?? false);
 
   const handleSelect = useCallback((id: string) => {
     activateItem(id);
@@ -30,23 +28,29 @@ export function ResultList() {
 
   const showInstantAnswers = tab === "apps" && instantAnswers.length > 0;
   const showHints = tab === "apps" && hints.length > 0 && !showInstantAnswers;
+  // Deliberately ignores whether a search is in flight: previous results are
+  // kept during a refetch, so this only flips when a search truly came back
+  // empty — unmounting on every keystroke made the empty state (and the
+  // footer below it) flicker. The brief first-search gap where results are
+  // still [] is hidden by the empty state's delayed fade-in (global.css).
   const showEmpty =
     query.trim().length > 0 &&
-    !isSearching &&
     results.length === 0 &&
     instantAnswers.length === 0 &&
     hints.length === 0;
 
   return (
-    <CommandList ref={setListElement} className="max-h-none flex-1 scrollbar-thin p-0! mt-1">
+    <CommandList ref={setListElement} className="max-h-none min-h-0 scrollbar-thin px-1 mt-1">
       {showInstantAnswers && <InstantAnswerGroup answers={instantAnswers} />}
       {showHints && <HintGroup hints={hints} onSelect={handleFillHint} />}
       {showEmpty && <CommandEmpty>No results found.</CommandEmpty>}
-      <CommandGroup>
-        {results.map((item) => (
-          <ResultItem key={item.id} item={item} onSelect={handleSelect} />
-        ))}
-      </CommandGroup>
+      {results.length > 0 && (
+        <CommandGroup>
+          {results.map((item) => (
+            <ResultItem key={item.id} item={item} onSelect={handleSelect} />
+          ))}
+        </CommandGroup>
+      )}
     </CommandList>
   );
 }

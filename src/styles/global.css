@@ -46,10 +46,63 @@ body {
   animation: item-in 100ms ease-out both;
 }
 
+/* The empty state stays invisible for a beat before fading in, so the brief
+   window where a first search hasn't returned yet never flashes it. */
+[cmdk-empty] {
+  animation: item-in 150ms ease-out 80ms both;
+}
+
+/* ── Launcher input: flush, chromeless bar ──
+   The input has no background or ring of its own, so its bounds blend into
+   the sheet — collapsed, the window IS the bar; expanded, the window just
+   grows downward beneath it. The window's DWM rounding shapes the corners.
+   (Scoped via the data-expanded attribute, which only the launcher's
+   Command carries.) */
+[data-expanded] [data-slot="command-input-wrapper"] {
+  padding: 0;
+}
+
+[data-expanded] [data-slot="input-group"] {
+  border-radius: 0;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Results follow the input's 16px icon grid: list + group padding inset the
+   highlight pill 8px from the window edges, and the item padding lands the
+   result icons at 16px — aligned with the search icon above them. */
+[data-expanded] [cmdk-item] {
+  padding-inline: 8px;
+}
+
+/* ── Launcher search bar ──
+   No WinUI metric exists for launcher bars; sizes follow the Fluent type
+   ramp (Body 14 / Body Large 18 / Subtitle 20) with PowerToys Run as the
+   nearest Microsoft reference. Bar heights pair with the type sizes; the
+   normal size (52px bar, 18px text, 20px icon) is set in ui/command.tsx. */
+[data-expanded] [data-slot="input-group-addon"][data-align="inline-start"] {
+  padding-left: 12px;
+}
+
+[data-size="compact"] [data-expanded] [data-slot="input-group"] {
+  height: 44px;
+}
+[data-size="compact"] [data-expanded] [data-slot="input-group-addon"] svg {
+  width: 18px;
+  height: 18px;
+}
+
+[data-size="fancy"] [data-expanded] [data-slot="input-group"] {
+  height: 60px;
+}
+[data-size="fancy"] [data-expanded] [data-slot="input-group-addon"] svg {
+  width: 24px;
+  height: 24px;
+}
+
 /* ── Launcher size: Compact ── */
 [data-size="compact"] [cmdk-input] {
-  font-size: 13px;
-  padding-block: 8px;
+  font-size: 14px;
 }
 
 [data-size="compact"] [cmdk-item] {
@@ -65,7 +118,6 @@ body {
 /* ── Launcher size: Fancy ── */
 [data-size="fancy"] [cmdk-input] {
   font-size: 18px;
-  padding-block: 16px;
 }
 
 [data-size="fancy"] [cmdk-item] {
