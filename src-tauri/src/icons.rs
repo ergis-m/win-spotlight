@@ -1,9 +1,15 @@
 //! Extract app icons from .lnk files and UWP apps using the Windows Shell API.
-//! Produces PNG data URIs with full alpha transparency, zero external crates.
+//! Produces PNG data URIs with full alpha transparency.
 
 use std::ffi::OsStr;
 use std::mem;
 use std::os::windows::ffi::OsStrExt;
+
+use windows::core::{Interface, PCWSTR};
+use windows::Win32::Storage::FileSystem::WIN32_FIND_DATAW;
+use windows::Win32::System::Com::{CoCreateInstance, IPersistFile, CLSCTX_INPROC_SERVER, STGM_READ};
+use windows::Win32::UI::Shell::{ExtractIconExW, IShellLinkW, ShellLink};
+use windows::Win32::UI::WindowsAndMessaging::HICON as WinHICON;
 
 // ── Windows API types ──
 
@@ -122,6 +128,11 @@ extern "system" {
     fn CoInitialize(reserved: *mut std::ffi::c_void) -> i32;
 }
 
+#[link(name = "kernel32")]
+extern "system" {
+    fn ExpandEnvironmentStringsW(src: *const u16, dst: *mut u16, size: u32) -> u32;
+}
+
 // ── Public API ──
 
 /// Extract icon from a .lnk shortcut file → `data:image/png;base64,...`
@@ -210,9 +221,20 @@ fn rgba_to_data_uri(w: u32, h: u32, rgba: &[u8]) -> String {
     format!("data:image/png;base64,{}", base64_encode(&png))
 }
 
-// ── .lnk icon extraction (SHGetFileInfoW) ──
+// ── .lnk icon extraction ──
 
 fn extract_lnk_icon(path: &str) -> Option<(u32, u32, Vec<u8>)> {
+    // Asking the shell for the .lnk file's own icon bakes in the
+    // shortcut-arrow overlay, so resolve the link and pull the icon from its
+    // real source first; the overlaid icon is only the last resort.
+    if let Some(icon) = resolve_lnk_icon(path) {
+        return Some(icon);
+    }
+    shell_file_icon(path)
+}
+
+/// The shell's icon for a file as Explorer shows it (includes overlays).
+fn shell_file_icon(path: &str) -> Option<(u32, u32, Vec<u8>)> {
     unsafe {
         let wide = to_wide(path);
         let mut info: SHFILEINFOW = mem::zeroed();
@@ -228,6 +250,77 @@ fn extract_lnk_icon(path: &str) -> Option<(u32, u32, Vec<u8>)> {
         DestroyIcon(info.h_icon);
         result
     }
+}
+
+/// Icon for a .lnk without the shortcut-arrow overlay: the link's explicit
+/// icon location if set, else the target file's own icon.
+fn resolve_lnk_icon(path: &str) -> Option<(u32, u32, Vec<u8>)> {
+    if !path.to_ascii_lowercase().ends_with(".lnk") {
+        return None;
+    }
+    unsafe {
+        CoInitialize(std::ptr::null_mut());
+        let link: IShellLinkW = CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER).ok()?;
+        let persist: IPersistFile = link.cast().ok()?;
+        let wide = to_wide(path);
+        persist.Load(PCWSTR(wide.as_ptr()), STGM_READ).ok()?;
+
+        let mut buf = [0u16; 520];
+        let mut idx = 0i32;
+        if link.GetIconLocation(&mut buf, &mut idx).is_ok() {
+            let loc = wide_to_string(&buf);
+            if !loc.is_empty() {
+                if let Some(icon) = extract_file_icon_at(&expand_env(&loc), idx) {
+                    return Some(icon);
+                }
+            }
+        }
+
+        let mut buf = [0u16; 520];
+        let mut fd: WIN32_FIND_DATAW = mem::zeroed();
+        if link.GetPath(&mut buf, &mut fd, 0).is_ok() {
+            let target = wide_to_string(&buf);
+            if !target.is_empty() && !target.to_ascii_lowercase().ends_with(".lnk") {
+                return shell_file_icon(&target);
+            }
+        }
+        None
+    }
+}
+
+/// Extract the icon at `index` from an .exe/.dll/.ico file.
+fn extract_file_icon_at(path: &str, index: i32) -> Option<(u32, u32, Vec<u8>)> {
+    unsafe {
+        let wide = to_wide(path);
+        let mut hicon = WinHICON::default();
+        let count = ExtractIconExW(PCWSTR(wide.as_ptr()), index, Some(&mut hicon), None, 1);
+        if count == 0 || hicon.is_invalid() {
+            return None;
+        }
+        let result = hicon_to_rgba(hicon.0 as isize);
+        DestroyIcon(hicon.0 as isize);
+        result
+    }
+}
+
+fn expand_env(s: &str) -> String {
+    if !s.contains('%') {
+        return s.to_string();
+    }
+    unsafe {
+        let wide = to_wide(s);
+        let mut buf = [0u16; 520];
+        let n = ExpandEnvironmentStringsW(wide.as_ptr(), buf.as_mut_ptr(), buf.len() as u32);
+        if n == 0 || n as usize > buf.len() {
+            return s.to_string();
+        }
+        wide_to_string(&buf)
+    }
+}
+
+fn wide_to_string(buf: &[u16]) -> String {
+    let len = buf.iter().position(|&c| c == 0).unwrap_or(buf.len());
+    String::from_utf16_lossy(&buf[..len])
 }
 
 // ── UWP icon extraction (COM IShellItemImageFactory) ──

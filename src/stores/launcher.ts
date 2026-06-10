@@ -20,13 +20,10 @@ export const launcher$ = observable<LauncherState>({
   selectedValue: "",
 });
 
-let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-
 export const setQuery = (query: string) => {
   launcher$.rawQuery.set(query);
   launcher$.selectedValue.set("");
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => launcher$.query.set(query), 20);
+  launcher$.query.set(query);
 };
 
 export const setTab = (tab: SearchMode) => launcher$.tab.set(tab);
@@ -41,6 +38,5 @@ export const setSelectedValue = (selectedValue: string) =>
   launcher$.selectedValue.set(selectedValue);
 
 export const resetLauncher = () => {
-  clearTimeout(debounceTimer);
   launcher$.assign({ rawQuery: "", query: "", tab: "apps", selectedValue: "" });
 };

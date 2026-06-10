@@ -20,6 +20,8 @@ version and date, and its contents become the GitHub Release notes.
 
 ### Fixed
 
+- App icons no longer show the shortcut-arrow overlay.
+
 ## [0.5.0] - 2026-06-10
 
 ### Added
