@@ -15,6 +15,14 @@ version and date, and its contents become the GitHub Release notes.
 
 ### Changed
 
+### Fixed
+
+## [0.5.1] - 2026-06-10
+
+### Added
+
+### Changed
+
 - The launcher window now sizes itself to its content: with an empty input it shows just the search bar (or your widgets, if configured), and springs open to fit results as you type.
 - Bigger search bar: taller input with larger text and icon, scaled per launcher size (compact / normal / fancy).
 
@@ -131,7 +139,8 @@ version and date, and its contents become the GitHub Release notes.
 
 - Initial release: React + shadcn UI, calculator, and commands.
 
-[Unreleased]: https://github.com/ergis-m/win-spotlight/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/ergis-m/win-spotlight/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/ergis-m/win-spotlight/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/ergis-m/win-spotlight/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/ergis-m/win-spotlight/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/ergis-m/win-spotlight/compare/v0.4.0...v0.4.2
