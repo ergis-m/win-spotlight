@@ -19,8 +19,12 @@ version and date, and its contents become the GitHub Release notes.
 
 ### Changed
 - Rebuilt state and data-flow for the launcher to use a single, reactive store for all state.
+- Simplified search to two tabs: Apps (apps, windows, browser tabs, games, and smart answers) and Files — replacing the previous All, Apps, Files, and Media tabs.
+- Faster searching: results arrive without icon data, and app icons are loaded on demand and cached for the session.
 
 ### Fixed
+
+- Typing no longer briefly freezes the launcher on the Files tab — searching the file index and loading thumbnails now run in the background instead of on the UI thread.
 
 ## [0.4.3] - 2026-05-29
 

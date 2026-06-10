@@ -2,6 +2,7 @@ mod browser_tabs;
 mod commands;
 mod file_indexer;
 mod file_search;
+mod icon_cache;
 mod icons;
 mod indexer;
 mod running;
@@ -68,6 +69,7 @@ pub fn run() {
             app.manage(usage::UsageTracker::new());
             app.manage(window::PinState::new());
             app.manage(steam::SteamIndex::new());
+            app.manage(icon_cache::IconCache::new());
             app.manage(system_info::SystemMonitor::new());
 
             // Start background file indexing.
@@ -150,6 +152,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::search,
+            commands::get_app_icon,
             commands::activate_item,
             commands::hide_window,
             commands::open_settings,

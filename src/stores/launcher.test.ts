@@ -18,11 +18,11 @@ afterEach(() => {
 });
 
 describe("launcher$ — initial state", () => {
-  it("starts empty on the 'all' tab", () => {
+  it("starts empty on the 'apps' tab", () => {
     expect(launcher$.peek()).toEqual({
       rawQuery: "",
       query: "",
-      tab: "all",
+      tab: "apps",
       selectedValue: "",
     });
   });
@@ -55,7 +55,7 @@ describe("setTab", () => {
 describe("cycleTab", () => {
   it("advances forward through every tab then wraps to the start", () => {
     const order = TABS.map((t) => t.key);
-    // Start on 'all' (index 0) → expect sequence of remaining tabs then wrap back.
+    // Start on 'apps' (index 0) → expect sequence of remaining tabs then wrap back.
     for (let i = 1; i < order.length; i++) {
       cycleTab(false);
       expect(launcher$.tab.peek()).toBe(order[i]);
@@ -80,13 +80,13 @@ describe("cycleTab", () => {
 describe("resetLauncher", () => {
   it("restores the initial state regardless of prior mutations", () => {
     setQuery("abc");
-    setTab("media");
+    setTab("files");
     setSelectedValue("xyz");
     resetLauncher();
     expect(launcher$.peek()).toEqual({
       rawQuery: "",
       query: "",
-      tab: "all",
+      tab: "apps",
       selectedValue: "",
     });
   });

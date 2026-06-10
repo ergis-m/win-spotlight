@@ -20,27 +20,13 @@ const CODE_EXTENSIONS: &[&str] = &[
     "kt", "toml", "yaml", "yml", "json", "html", "css", "scss",
 ];
 
-/// Media extensions for the Media tab filter.
-const MEDIA_EXTENSIONS: &[&str] = &[
-    "jpg", "jpeg", "png", "gif", "svg", "webp", "bmp", "ico", "tiff", "tif",
-    "mp4", "mkv", "avi", "mov", "webm", "wmv", "flv",
-    "mp3", "wav", "flac", "ogg", "aac", "wma", "m4a",
-];
-
 pub fn query_files(
     file_index: &FileIndex,
     tracker: &UsageTracker,
     query: &str,
     limit: usize,
-    media_only: bool,
-    skip_min_length: bool,
 ) -> Vec<(i64, SearchResult)> {
     if !file_index.ready.load(Ordering::SeqCst) {
-        return Vec::new();
-    }
-
-    // In "all" mode, require at least 3 chars. In dedicated file/media tabs, allow shorter.
-    if !skip_min_length && query.len() < 3 {
         return Vec::new();
     }
 
@@ -55,11 +41,6 @@ pub fn query_files(
     let mut scored: Vec<(i64, SearchResult)> = Vec::new();
 
     for entry in entries.iter() {
-        // Media filter: skip non-media files when in media mode.
-        if media_only && !MEDIA_EXTENSIONS.contains(&entry.extension.as_str()) {
-            continue;
-        }
-
         let Some(score) = matcher.fuzzy_match(&entry.name, query) else {
             continue;
         };
@@ -124,7 +105,6 @@ pub fn query_files(
                 id: file_id,
                 title: entry.name.clone(),
                 subtitle,
-                icon: String::new(),
                 kind: "file".into(),
             },
         ));

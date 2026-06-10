@@ -28,8 +28,8 @@ export function ResultList() {
     focusInput();
   }, []);
 
-  const showInstantAnswers = tab === "all" && instantAnswers.length > 0;
-  const showHints = tab === "all" && hints.length > 0 && !showInstantAnswers;
+  const showInstantAnswers = tab === "apps" && instantAnswers.length > 0;
+  const showHints = tab === "apps" && hints.length > 0 && !showInstantAnswers;
   const showEmpty =
     query.trim().length > 0 &&
     !isSearching &&

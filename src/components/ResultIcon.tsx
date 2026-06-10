@@ -14,7 +14,7 @@ import {
 import type { IconSvgElement } from "@hugeicons/react";
 import { use$ } from "@legendapp/state/react";
 import type { SearchResult } from "@/services/search";
-import { fileThumbnail$ } from "@/services/search";
+import { appIcon$, fileThumbnail$ } from "@/services/search";
 
 const EXT_ICON_MAP: Record<string, IconSvgElement> = {
   // Documents
@@ -127,6 +127,19 @@ function FileIcon({ filename }: { filename: string }) {
   );
 }
 
+function AppIcon({ item }: { item: SearchResult }) {
+  const icon = use$(appIcon$(item.id));
+
+  if (icon) {
+    return <img className="size-6 object-contain rounded" src={icon} alt="" />;
+  }
+  return (
+    <span className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-sm font-semibold text-primary">
+      {item.title.charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
 function FileThumbnailIcon({ item }: { item: SearchResult }) {
   const filePath = item.id.slice(5); // strip "file:" prefix
   const ext = getExtension(item.title);
@@ -162,12 +175,5 @@ export function ResultIcon({ item }: { item: SearchResult }) {
     return <FileThumbnailIcon item={item} />;
   }
 
-  if (item.icon) {
-    return <img className="size-6 object-contain rounded" src={item.icon} alt="" />;
-  }
-  return (
-    <span className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-sm font-semibold text-primary">
-      {item.title.charAt(0).toUpperCase()}
-    </span>
-  );
+  return <AppIcon item={item} />;
 }

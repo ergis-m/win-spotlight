@@ -2,6 +2,7 @@ use std::os::windows::process::CommandExt;
 use std::sync::Arc;
 
 use crate::file_indexer::{self, FileIndex, FileIndexStatus};
+use crate::icon_cache::IconCache;
 use crate::indexer::AppIndex;
 use crate::running;
 use crate::search;
@@ -10,8 +11,11 @@ use crate::steam::SteamIndex;
 use crate::usage::UsageTracker;
 use tauri::{AppHandle, Manager, State};
 
+/// Async so it runs on the thread pool, not the main thread — fuzzy-matching
+/// a large file index per keystroke would otherwise stall the event loop and
+/// freeze the UI. (Async commands with `State` must return `Result`.)
 #[tauri::command]
-pub fn search(
+pub async fn search(
     query: String,
     mode: String,
     index: State<'_, Arc<AppIndex>>,
@@ -19,8 +23,22 @@ pub fn search(
     steam_index: State<'_, SteamIndex>,
     tracker: State<'_, UsageTracker>,
     settings_mgr: State<'_, SettingsManager>,
-) -> Vec<search::SearchResult> {
-    search::query(&index, &file_index, &steam_index, &tracker, &settings_mgr, &query, &mode, 10)
+) -> Result<Vec<search::SearchResult>, String> {
+    Ok(search::query(&index, &file_index, &steam_index, &tracker, &settings_mgr, &query, &mode, 10))
+}
+
+/// Icon for a search result, fetched by id like a resource and cached on
+/// both sides — the frontend keeps a per-id observable, this end dedupes
+/// window/tab extraction per executable. Async because window icon
+/// extraction can wait up to 100ms on a hung window (WM_GETICON timeout).
+#[tauri::command]
+pub async fn get_app_icon(
+    id: String,
+    index: State<'_, Arc<AppIndex>>,
+    steam_index: State<'_, SteamIndex>,
+    cache: State<'_, IconCache>,
+) -> Result<Option<String>, String> {
+    Ok(cache.resolve(&id, &index, &steam_index))
 }
 
 /// Activate a search result — either switch to a running window or launch an app.
@@ -249,8 +267,10 @@ pub fn get_file_index_status(
     file_index.status()
 }
 
+/// Async so shell thumbnail extraction (disk I/O + decode, up to 10 per
+/// result page) happens off the main thread.
 #[tauri::command]
-pub fn get_file_thumbnail(path: String) -> Option<String> {
+pub async fn get_file_thumbnail(path: String) -> Option<String> {
     crate::icons::extract_file_thumbnail(&path, 64)
 }
 

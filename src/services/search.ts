@@ -6,17 +6,20 @@ export interface SearchResult {
   id: string;
   title: string;
   subtitle: string;
-  icon: string;
   kind: "app" | "window" | "file" | "url" | "command" | "tab" | "game";
 }
 
-export type SearchMode = "all" | "apps" | "files" | "media";
+export type SearchMode = "apps" | "files";
 
 export async function searchItems(
   query: string,
-  mode: SearchMode = "all",
+  mode: SearchMode = "apps",
 ): Promise<SearchResult[]> {
   return invoke<SearchResult[]>("search", { query, mode });
+}
+
+export async function getAppIcon(id: string): Promise<string | null> {
+  return invoke<string | null>("get_app_icon", { id });
 }
 
 export async function activateItem(id: string): Promise<void> {
@@ -49,4 +52,26 @@ export function fileThumbnail$(path: string): Observable<string | null> {
     thumbnails.set(path, thumb$);
   }
   return thumb$;
+}
+
+const appIcons = new Map<string, Observable<string | null>>();
+
+/**
+ * Cached icon observable for a search result id, loaded like a remote image
+ * resource (`/icon/<id>`): fetched once per id, then served from this map.
+ * Search responses carry no icon data, so result lists arrive fast and icons
+ * fill in from cache.
+ */
+export function appIcon$(id: string): Observable<string | null> {
+  let icon$ = appIcons.get(id);
+  if (!icon$) {
+    icon$ = observable(
+      synced<string | null>({
+        get: () => getAppIcon(id),
+        initial: null,
+      }),
+    );
+    appIcons.set(id, icon$);
+  }
+  return icon$;
 }

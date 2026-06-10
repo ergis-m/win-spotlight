@@ -2,10 +2,8 @@ import { observable } from "@legendapp/state";
 import type { SearchMode } from "@/services/search";
 
 export const TABS: { key: SearchMode; label: string; placeholder: string }[] = [
-  { key: "all", label: "All", placeholder: "Search apps, files..." },
-  { key: "apps", label: "Apps", placeholder: "Search apps..." },
+  { key: "apps", label: "Apps", placeholder: "Search apps, calculate, convert..." },
   { key: "files", label: "Files", placeholder: "Search files..." },
-  { key: "media", label: "Media", placeholder: "Search media..." },
 ];
 
 interface LauncherState {
@@ -18,7 +16,7 @@ interface LauncherState {
 export const launcher$ = observable<LauncherState>({
   rawQuery: "",
   query: "",
-  tab: "all",
+  tab: "apps",
   selectedValue: "",
 });
 
@@ -44,5 +42,5 @@ export const setSelectedValue = (selectedValue: string) =>
 
 export const resetLauncher = () => {
   clearTimeout(debounceTimer);
-  launcher$.assign({ rawQuery: "", query: "", tab: "all", selectedValue: "" });
+  launcher$.assign({ rawQuery: "", query: "", tab: "apps", selectedValue: "" });
 };

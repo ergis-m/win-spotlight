@@ -5,19 +5,19 @@ use serde::Serialize;
 use crate::browser_tabs;
 use crate::file_indexer::FileIndex;
 use crate::file_search;
-use crate::icons;
 use crate::indexer::AppIndex;
 use crate::running;
 use crate::steam::SteamIndex;
 use crate::settings::SettingsManager;
 use crate::usage::UsageTracker;
 
+/// Icons are not embedded here — the frontend fetches them per result id via
+/// the `get_app_icon` command and caches the response (see `icon_cache`).
 #[derive(Clone, Serialize)]
 pub struct SearchResult {
     pub id: String,
     pub title: String,
     pub subtitle: String,
-    pub icon: String,
     /// `"app"`, `"window"`, `"file"`, or `"url"` — tells the frontend what kind of result this is.
     pub kind: String,
 }
@@ -32,14 +32,18 @@ pub fn query(
     mode: &str,
     limit: usize,
 ) -> Vec<SearchResult> {
-    let windows = running::get_windows();
     let (file_search_enabled, show_browser_tabs) = {
         let s = settings_mgr.inner.lock().unwrap();
         (s.file_search.enabled, s.show_browser_tabs)
     };
-    let include_apps = mode == "all" || mode == "apps";
-    let include_files = file_search_enabled && (mode == "all" || mode == "files");
-    let include_media = file_search_enabled && mode == "media";
+    let include_apps = mode != "files";
+    let include_files = file_search_enabled && mode == "files";
+
+    let windows = if include_apps {
+        running::get_windows()
+    } else {
+        Vec::new()
+    };
 
     // Enumerate browser tabs once — used for both tab count on windows and
     // individual tab search results.
@@ -59,8 +63,10 @@ pub fn query(
     }
 
     // If the query looks like a URL, offer to open it directly.
-    if let Some(url_result) = url_result(query) {
-        return vec![url_result];
+    if include_apps {
+        if let Some(url_result) = url_result(query) {
+            return vec![url_result];
+        }
     }
 
     let matcher = SkimMatcherV2::default();
@@ -143,13 +149,8 @@ pub fn query(
         }
     }
 
-    if include_files || include_media {
-        let file_limit = if mode == "all" { 5 } else { limit };
-        let skip_min = mode != "all";
-        let file_results = file_search::query_files(
-            file_index, tracker, query, file_limit, include_media, skip_min,
-        );
-        scored.extend(file_results);
+    if include_files {
+        scored.extend(file_search::query_files(file_index, tracker, query, limit));
     }
 
     scored.sort_by(|a, b| b.0.cmp(&a.0));
@@ -240,7 +241,6 @@ fn window_result(win: &running::RunningWindow, tab_count: usize) -> SearchResult
         id: format!("window:{}", win.hwnd),
         title: win.title.clone(),
         subtitle,
-        icon: icons::extract_window_icon(win.hwnd, &win.exe_path).unwrap_or_default(),
         kind: "window".into(),
     }
 }
@@ -311,7 +311,6 @@ fn url_result(query: &str) -> Option<SearchResult> {
         id: format!("url:{}", url),
         title: trimmed.to_string(),
         subtitle: format!("Open {}", url),
-        icon: String::new(),
         kind: "url".into(),
     })
 }
@@ -326,7 +325,6 @@ fn tab_result(tab: &browser_tabs::BrowserTab) -> SearchResult {
         id: format!("tab:{}:{}", tab.window_hwnd, tab.title),
         title: tab.title.clone(),
         subtitle: format!("{}", exe_name),
-        icon: icons::extract_icon_data_uri(&tab.exe_path).unwrap_or_default(),
         kind: "tab".into(),
     }
 }
@@ -336,7 +334,6 @@ fn game_result(game: &crate::steam::SteamGame) -> SearchResult {
         id: format!("steam:{}", game.app_id),
         title: game.name.clone(),
         subtitle: "Steam Game".into(),
-        icon: game.icon_data.clone(),
         kind: "game".into(),
     }
 }
@@ -350,7 +347,6 @@ fn app_result(e: &crate::indexer::AppEntry) -> SearchResult {
         } else {
             e.group.clone()
         },
-        icon: e.icon_data.clone(),
         kind: "app".into(),
     }
 }
