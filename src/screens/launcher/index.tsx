@@ -9,6 +9,7 @@ import { LauncherInput } from "@/components/LauncherInput";
 import { ResultList } from "@/components/ResultList";
 import { launcher$, cycleTab, setSelectedValue, resetLauncher } from "@/stores/launcher";
 import { WidgetArea } from "@/layouts/WidgetArea";
+import { LauncherWrapper } from "@/components/launcher/LauncherWrapper";
 
 export function App() {
   const selectedValue = use$(launcher$.selectedValue);
@@ -28,7 +29,7 @@ export function App() {
   }, []);
 
   return (
-    <div className="relative flex size-full flex-col">
+    <LauncherWrapper>
       <PinHandle />
       <Command
         className="rounded-none! bg-background/50 text-foreground p-1"
@@ -49,6 +50,6 @@ export function App() {
         <ResultList />
         <SearchFooter />
       </Command>
-    </div>
+    </LauncherWrapper>
   );
 }

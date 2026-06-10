@@ -66,7 +66,7 @@ function CommandInput({
 }) {
   return (
     <div data-slot="command-input-wrapper" className="p-1 pb-0">
-      <InputGroup className="h-9 rounded-md bg-input/50">
+      <InputGroup className="h-9 rounded-sm bg-input/50 frosted-backdrop ring-2 ring-border/50">
         <InputGroupAddon>
           <HugeiconsIcon icon={SearchIcon} strokeWidth={2} className="size-4 shrink-0 opacity-50" />
         </InputGroupAddon>
