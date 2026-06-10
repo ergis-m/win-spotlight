@@ -13,6 +13,14 @@ version and date, and its contents become the GitHub Release notes.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.5.0] - 2026-06-10
+
+### Added
+
 - Animated focus ring that glides between search results as you move the selection.
 - Dark Mode widget: a 1×1 tile that toggles Windows between light and dark theme (the system theme, not just the app).
 - Setting to show or hide open browser tabs as individual search results (General settings). When off, the browser window is shown instead.
@@ -118,7 +126,8 @@ version and date, and its contents become the GitHub Release notes.
 
 - Initial release: React + shadcn UI, calculator, and commands.
 
-[Unreleased]: https://github.com/ergis-m/win-spotlight/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/ergis-m/win-spotlight/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/ergis-m/win-spotlight/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/ergis-m/win-spotlight/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/ergis-m/win-spotlight/compare/v0.4.0...v0.4.2
 [0.4.0]: https://github.com/ergis-m/win-spotlight/compare/v0.3.2...v0.4.0
